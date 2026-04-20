@@ -43,13 +43,18 @@ export default function AdminProfilePage() {
   }
 
   return (
-    <section className="card p-8 rounded-3xl border border-[var(--border)] shadow-sm max-w-4xl">
-      <h2 className="text-2xl font-black text-[var(--foreground)]">Profile Settings</h2>
-      <p className="mt-1 text-sm font-bold text-[var(--muted)]">
-        Update administrator information and security credentials.
-      </p>
+    <section className="card p-10 rounded-3xl border border-[var(--border)] shadow-sm max-w-4xl bg-white">
+      <div className="flex items-center gap-6 mb-10 pb-8 border-b border-gray-100">
+        <div className="h-20 w-20 rounded-2xl bg-[var(--accent)] border-4 border-white shadow-xl flex items-center justify-center text-white text-3xl font-black">
+          SA
+        </div>
+        <div>
+          <h2 className="text-3xl font-black text-[var(--foreground)] tracking-tight">Profile Settings</h2>
+          <p className="text-[15px] font-bold text-[var(--muted)]">Manage your administrative ID and security.</p>
+        </div>
+      </div>
 
-      <form className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2" onSubmit={handleSave}>
+      <form className="grid grid-cols-1 gap-6 md:grid-cols-2" onSubmit={handleSave}>
         <div className="md:col-span-2">
           <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-[var(--muted)]">Full Name</label>
           <input
