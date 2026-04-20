@@ -19,12 +19,10 @@ export default function ArchivePage() {
   );
 
   return (
-    <section className="card p-5">
-      <h2 className="text-2xl font-bold text-[var(--accent)]">
-        Issue History & Archive
-      </h2>
-      <p className="mt-1 text-sm text-[var(--muted)]">
-        Resolved issues remain searchable for accountability and reference.
+    <section className="card p-8 rounded-3xl border border-[var(--border)] shadow-sm">
+      <h2 className="text-2xl font-black text-[var(--foreground)]">Issue Archive</h2>
+      <p className="mt-1 text-sm font-bold text-[var(--muted)]">
+        A complete log of all resolved and closed concerns.
       </p>
 
       <div className="mt-5 space-y-3">

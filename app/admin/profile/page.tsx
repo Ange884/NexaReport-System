@@ -43,51 +43,51 @@ export default function AdminProfilePage() {
   }
 
   return (
-    <section className="card p-5">
-      <h2 className="text-2xl font-bold text-[var(--accent)]">Profile Settings</h2>
-      <p className="mt-1 text-sm text-[var(--muted)]">
-        Update administrator information and password.
+    <section className="card p-8 rounded-3xl border border-[var(--border)] shadow-sm max-w-4xl">
+      <h2 className="text-2xl font-black text-[var(--foreground)]">Profile Settings</h2>
+      <p className="mt-1 text-sm font-bold text-[var(--muted)]">
+        Update administrator information and security credentials.
       </p>
 
-      <form className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={handleSave}>
+      <form className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2" onSubmit={handleSave}>
         <div className="md:col-span-2">
-          <label className="mb-1 block text-sm font-semibold">Full Name</label>
+          <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-[var(--muted)]">Full Name</label>
           <input
             type="text"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="w-full rounded-lg border border-[var(--border)] px-3 py-2 outline-none focus:border-[var(--accent)]"
+            className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm font-medium outline-none focus:border-[var(--accent)]"
           />
         </div>
         <div className="md:col-span-2">
-          <label className="mb-1 block text-sm font-semibold">Email</label>
+          <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-[var(--muted)]">Email</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-lg border border-[var(--border)] px-3 py-2 outline-none focus:border-[var(--accent)]"
+            className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm font-medium outline-none focus:border-[var(--accent)]"
           />
         </div>
         <div className="md:col-span-2">
-          <label className="mb-1 block text-sm font-semibold">Role</label>
+          <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-[var(--muted)]">Role</label>
           <input
             value={role}
             readOnly
-            className="w-full rounded-lg border border-[var(--border)] bg-[var(--accent-soft)] px-3 py-2 text-[var(--muted)] outline-none"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--accent-soft)] px-4 py-2.5 text-sm font-bold text-[var(--accent)] outline-none"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-semibold">New Password</label>
+          <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-[var(--muted)]">New Password</label>
           <input
             type="password"
             placeholder="Enter new password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            className="w-full rounded-lg border border-[var(--border)] px-3 py-2 outline-none focus:border-[var(--accent)]"
+            className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm font-medium outline-none focus:border-[var(--accent)]"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-semibold">
+          <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-[var(--muted)]">
             Confirm New Password
           </label>
           <input
@@ -95,17 +95,17 @@ export default function AdminProfilePage() {
             placeholder="Confirm password"
             value={confirmNewPassword}
             onChange={(e) => setConfirmNewPassword(e.target.value)}
-            className="w-full rounded-lg border border-[var(--border)] px-3 py-2 outline-none focus:border-[var(--accent)]"
+            className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm font-medium outline-none focus:border-[var(--accent)]"
           />
         </div>
-        {error && <p className="md:col-span-2 text-sm font-medium text-red-600">{error}</p>}
+        {error && <p className="md:col-span-2 text-sm font-bold text-red-600">{error}</p>}
         {message && (
-          <p className="md:col-span-2 text-sm font-medium text-emerald-700">{message}</p>
+          <p className="md:col-span-2 text-sm font-bold text-emerald-700">{message}</p>
         )}
-        <div className="md:col-span-2">
+        <div className="md:col-span-2 mt-4">
           <button
             type="submit"
-            className="rounded-lg bg-[var(--accent)] px-5 py-2 font-semibold text-white"
+            className="rounded-xl bg-[var(--accent)] px-8 py-3 font-black text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
           >
             Save Changes
           </button>

@@ -6,7 +6,7 @@
   --surface: #ffffff;
   --muted: #718096;
   --border: #e2e8f0;
-  --accent: #3182ce;
+  --accent: #21130D;
   --accent-soft: #ebf8ff;
   --sidebar: #ffffff;
 }
@@ -32,6 +32,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
   --font-sans: var(--font-urbanist);
 }
 

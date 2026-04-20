@@ -93,11 +93,13 @@ export default function ManageIssuesPage() {
 
   return (
     <section className="card p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-bold text-[var(--accent)]">Manage Issues</h2>
-        <p className="text-sm text-[var(--muted)]">
-          Search, filter, update status, and assign by category.
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3 px-2">
+        <div>
+          <h2 className="text-2xl font-black text-[var(--foreground)]">Manage Issues</h2>
+          <p className="mt-1 text-sm font-bold text-[var(--muted)]">
+            Search, filter, and resolve student concerns efficiently.
+          </p>
+        </div>
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-4">
@@ -201,11 +203,11 @@ export default function ManageIssuesPage() {
 
               {issue.comments.length > 0 && (
                 <div className="mt-4 rounded-lg border border-[var(--border)] bg-[var(--accent-soft)] p-3">
-                  <p className="text-xs font-semibold text-[var(--muted)]">
+                  <p className="text-xs font-black uppercase tracking-wider text-[var(--muted)]">
                     Admin Comments / Responses
                   </p>
                   {issue.comments.map((comment, idx) => (
-                    <p key={idx} className="mt-1 text-sm text-[var(--accent)]">
+                    <p key={idx} className="mt-1 text-sm font-bold text-[var(--accent)]">
                       {comment.author}: {comment.text}
                     </p>
                   ))}
