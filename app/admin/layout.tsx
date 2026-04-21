@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const navItems = [
   {
@@ -36,6 +36,7 @@ export default function AdminLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   function handleLogout() {
     router.push("/login");
@@ -93,10 +94,26 @@ export default function AdminLayout({
           </div>
 
           <div className="flex items-center gap-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--background)] text-[var(--muted)] transition hover:text-[var(--accent)] cursor-pointer">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <div className="flex items-center gap-4">
+            <div className="relative group">
+              <input
+                type="text"
+                defaultValue={searchParams.get("q") || ""}
+                placeholder="Search issues, reporters..."
+                className="w-64 rounded-full bg-[var(--background)] border border-transparent px-10 py-2.5 text-sm font-medium outline-none transition-all focus:border-[var(--accent)] focus:bg-white focus:ring-4 focus:ring-blue-100/50 group-hover:bg-white group-hover:border-[var(--border)]"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const val = (e.target as HTMLInputElement).value;
+                    router.push(`/admin/manage-issues?q=${encodeURIComponent(val)}`);
+                  }
+                }}
+              />
+              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--muted)] group-focus-within:text-[var(--accent)] transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              </div>
             </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--background)] text-[var(--muted)] transition hover:text-[var(--accent)] cursor-pointer">
+
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--background)] text-[var(--muted)] transition hover:text-[var(--accent)] hover:bg-white hover:border border-[var(--border)] cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
             </div>
             <div className="flex items-center gap-3">
@@ -105,6 +122,7 @@ export default function AdminLayout({
                 <p className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-widest mt-1">Superuser</p>
               </div>
               <div className="h-10 w-10 rounded-full bg-[var(--accent)] border-2 border-white shadow-md"></div>
+            </div>
             </div>
           </div>
         </header>

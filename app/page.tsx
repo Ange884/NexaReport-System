@@ -10,19 +10,19 @@ export default function Home() {
       
       <section className="relative z-10 w-full max-w-3xl overflow-hidden rounded-[40px] bg-white p-12 text-center shadow-2xl border border-white">
         <div className="mb-8 flex justify-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-xl shadow-blue-200 animate-fade-in">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--accent)] text-white shadow-xl shadow-blue-200 animate-fade-in">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-8 w-8">
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
             </svg>
           </div>
         </div>
 
-        <p className="text-sm font-black tracking-[0.3em] text-blue-600 uppercase">
+        <p className="text-sm font-black tracking-[0.3em] text-[var(--accent)] uppercase">
           NexaReport System
         </p>
         <h1 className="mt-4 text-5xl font-black tracking-tight text-gray-900 leading-tight">
           Modern Control for <br />
-          <span className="text-blue-600">Issue Resolution</span>
+          <span className="text-[var(--accent)]">Issue Resolution</span>
         </h1>
         <p className="mt-6 text-lg font-bold text-gray-500 leading-relaxed max-w-xl mx-auto">
           The all-in-one administrative suite for tracking, managing, and resolving facility concerns with efficiency and transparency.
@@ -31,7 +31,7 @@ export default function Home() {
         <div className="mt-10 flex flex-wrap justify-center gap-4">
           <Link
             href="/login"
-            className="group flex items-center gap-2 rounded-2xl bg-blue-600 px-8 py-4 font-black text-white shadow-xl shadow-blue-200 transition-all hover:bg-blue-700 hover:scale-[1.02] active:scale-[0.98]"
+            className="group flex items-center gap-2 rounded-2xl bg-[var(--accent)] px-8 py-4 font-black text-white shadow-xl shadow-blue-200 transition-all hover:bg-[var(--accent)] hover:scale-[1.02] active:scale-[0.98]"
           >
             Access Dashboard
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="h-4 w-4 transition-transform group-hover:translate-x-1">
@@ -40,7 +40,7 @@ export default function Home() {
           </Link>
           <Link
             href="/signup"
-            className="rounded-2xl border-2 border-gray-100 bg-gray-50 px-8 py-4 font-black text-gray-900 transition-all hover:bg-white hover:border-gray-200 hover:shadow-lg active:scale-[0.98]"
+            className="rounded-2xl border-2 border-gray-100 bg-gray-50 px-8 py-4 font-black text-gray-900 transition-all hover:bg-white hover:border-gray-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
           >
             Create Account
           </Link>
