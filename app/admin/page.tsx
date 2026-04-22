@@ -52,7 +52,7 @@ export default function AdminDashboardPage() {
     <div className="relative">
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Left Column: Data Tables and Primary Stats */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="lg:col-span-2 flex flex-col gap-8">
           {/* Urgent Reports Card */}
           <section className="rounded-3xl border border-[var(--border)] bg-white p-6 shadow-sm transition hover:shadow-md">
             <div className="mb-6 flex items-center justify-between">
@@ -102,7 +102,7 @@ export default function AdminDashboardPage() {
           </section>
 
           {/* System Activity Chart Placeholder */}
-          <section className="rounded-3xl border border-[var(--border)] bg-white p-6 shadow-sm">
+          <section className="flex flex-1 flex-col rounded-3xl border border-[var(--border)] bg-white p-6 shadow-sm">
             <div className="mb-6 flex items-center justify-between">
               <h3 className="text-xl font-black text-[var(--foreground)]">System Activity</h3>
               <div className="flex gap-2">
@@ -114,7 +114,7 @@ export default function AdminDashboardPage() {
                 </span>
               </div>
             </div>
-            <div className="flex h-48 items-end gap-3 px-4">
+            <div className="flex flex-1 items-end gap-3 px-4 pb-2">
               {[40, 70, 45, 90, 65, 80, 55].map((h, i) => (
                 <div key={i} className="group relative flex-1">
                   <div 
@@ -129,13 +129,13 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Right Column: Statistics Widgets */}
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
           <StatWidget label="Resolved Issues" value="124" trend="+12%" icon="✓" color="emerald" />
           <StatWidget label="Pending Actions" value="12" trend="-2" icon="!" color="amber" />
           <StatWidget label="Avg Resolution" value="2.4d" trend="-0.5" icon="⚡" color="indigo" />
 
           {/* Action Card */}
-          <div className="relative mt-4 overflow-hidden rounded-3xl  bg-[var(--accent)] p-6 text-white shadow-xl">
+          <div className="relative flex flex-1 flex-col justify-center overflow-hidden rounded-3xl bg-[var(--accent)] p-6 text-white shadow-xl">
             <div className="relative z-10">
               <p className="text-xs font-bold uppercase tracking-widest opacity-80">Upcoming Action</p>
               <h4 className="mt-2 text-2xl font-black leading-tight">Resolve Maintenance Queue</h4>
