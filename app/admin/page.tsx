@@ -354,13 +354,13 @@ export default function AdminDashboardPage() {
                 <button 
                   onClick={submitResponse}
                   disabled={isUpdating || !response.trim()}
-                  className="flex-1 rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white transition-all hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white transition-all hover:translate-y-[-2px] hover:brightness-125 hover:shadow-xl hover:shadow-black/30 active:scale-95 disabled:opacity-50"
                 >
                   {isUpdating ? 'Updating...' : 'Submit Action'}
                 </button>
                 <button 
                   onClick={() => setSelectedIssue(null)}
-                  className="flex-1 rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--muted)] transition-all hover:bg-gray-50"
+                  className="flex-1 rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--muted)] transition-all hover:translate-y-[-2px] hover:border-[var(--accent)]"
                 >
                   Cancel
                 </button>
@@ -427,13 +427,13 @@ export default function AdminDashboardPage() {
                 <button 
                   onClick={submitBroadcastComment}
                   disabled={isUpdating || !broadcastComment.trim()}
-                  className="flex-1 rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white transition-all hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white transition-all hover:translate-y-[-2px] hover:bg-[var(--accent)] hover:shadow-xl hover:shadow-blue-900/20 disabled:opacity-50"
                 >
                   {isUpdating ? 'Posting...' : 'Post Comment'}
                 </button>
                 <button 
                   onClick={() => setSelectedBroadcast(null)}
-                  className="flex-1 rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--muted)] transition-all hover:bg-gray-50"
+                  className="flex-1 rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--muted)] transition-all hover:translate-y-[-2px] hover:bg-[var(--accent)] hover:text-white hover:border-[var(--accent)]"
                 >
                   Close
                 </button>
