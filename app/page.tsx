@@ -7,7 +7,7 @@ export default function Home() {
         <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-blue-500/10 blur-[120px]"></div>
         <div className="absolute top-[20%] right-[-5%] w-[30%] h-[30%] rounded-full bg-indigo-500/10 blur-[100px]"></div>
       </div>
-      
+
       <section className="relative z-10 w-full max-w-3xl overflow-hidden rounded-[40px] bg-white p-12 text-center shadow-2xl border border-white">
         <div className="mb-8 flex justify-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--accent)] text-white shadow-xl shadow-blue-200 animate-fade-in">
@@ -27,7 +27,7 @@ export default function Home() {
         <p className="mt-6 text-lg font-bold text-gray-500 leading-relaxed max-w-xl mx-auto">
           The all-in-one administrative suite for tracking, managing, and resolving facility concerns with efficiency and transparency.
         </p>
-        
+
         <div className="mt-10 flex flex-wrap justify-center gap-4">
           <Link
             href="/login"

@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { 
-  CheckCircle, 
-  Clock, 
-  AlertTriangle, 
-  Activity, 
-  TrendingUp, 
-  ArrowUpRight, 
-  Zap, 
+import {
+  CheckCircle,
+  Clock,
+  AlertTriangle,
+  Activity,
+  TrendingUp,
+  ArrowUpRight,
+  Zap,
   ListChecks,
   ShieldAlert,
   CalendarDays
@@ -57,12 +57,12 @@ export default function AdminDashboardPage() {
 
   const submitResponse = () => {
     if (!selectedIssue || !response.trim()) return;
-    
+
     setIsUpdating(true);
     // Simulate API call
     setTimeout(() => {
-      setIssues(prev => prev.map(issue => 
-        issue.id === selectedIssue.id 
+      setIssues(prev => prev.map(issue =>
+        issue.id === selectedIssue.id
           ? { ...issue, status: 'In Progress', comments: [...(issue.comments || []), { author: 'Admin', text: response, timestamp: 'Just now' }] }
           : issue
       ));
@@ -88,11 +88,11 @@ export default function AdminDashboardPage() {
                   <p className="mt-1 text-[10px] font-bold text-[var(--muted)] uppercase tracking-widest">High priority pending</p>
                 </div>
               </div>
-                <Link href="/admin/manage-issues" className="transition-all">
-                  <button className="flex items-center gap-2 text-sm font-bold text-[var(--accent)] hover:scale-105 hover:cursor-pointer">
-                    View All <ArrowUpRight size={16} />
-                  </button>
-                </Link>
+              <Link href="/admin/manage-issues" className="transition-all">
+                <button className="flex items-center gap-2 text-sm font-bold text-[var(--accent)] hover:scale-105 hover:cursor-pointer">
+                  View All <ArrowUpRight size={16} />
+                </button>
+              </Link>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
@@ -109,19 +109,18 @@ export default function AdminDashboardPage() {
                     <tr key={issue.id} className="group transition-colors hover:bg-[var(--background)]">
                       <td className="py-4 font-bold text-[var(--foreground)]">
                         <p className="text-sm">{issue.title}</p>
-                        <p className="text-[10px] text-[var(--muted)] uppercase tracking-tighter">{issue.trackingId}</p>
+                        <p className="text-[10px] text-[var(--muted)] uppercase tracking-tighter">{issue.date}</p>
                       </td>
                       <td className="py-4 text-sm text-[var(--muted)] font-medium">{issue.reporter}</td>
                       <td className="py-4">
-                        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest ${
-                          issue.priority === 'High' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'
-                        }`}>
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest ${issue.priority === 'High' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'
+                          }`}>
                           <span className={`h-1.5 w-1.5 rounded-full ${issue.priority === 'High' ? 'bg-red-600 animate-pulse' : 'bg-blue-600'}`}></span>
                           {issue.priority}
                         </span>
                       </td>
                       <td className="py-4 text-right">
-                        <button 
+                        <button
                           onClick={() => handleManage(issue)}
                           className="rounded-lg border border-[var(--border)] px-4 py-1.5 text-xs font-bold text-[var(--muted)] transition-all hover:border-[var(--accent)] hover:text-[var(--accent)] hover:bg-white"
                         >
@@ -156,22 +155,22 @@ export default function AdminDashboardPage() {
                 </span>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 flex-1">
               <div className="md:col-span-3 flex items-end gap-3 px-4 pb-2 h-48 md:h-full">
                 {dailyActivity.map((data, i) => (
-                  <div 
-                    key={i} 
+                  <div
+                    key={i}
                     onClick={() => setActiveDay(i)}
                     className="group relative flex-1 cursor-pointer"
                   >
                     <div className="flex h-full flex-col justify-end gap-1">
-                      <div 
-                        className={`w-full rounded-t-xl transition-all duration-300 relative ${activeDay === i ? 'bg-[var(--accent)] shadow-lg' : 'bg-gray-100 group-hover:bg-blue-50'}`} 
+                      <div
+                        className={`w-full rounded-t-xl transition-all duration-300 relative ${activeDay === i ? 'bg-[var(--accent)] shadow-lg' : 'bg-gray-100 group-hover:bg-blue-50'}`}
                         style={{ height: `${(data.volume / 30) * 100}%` }}
                       >
                         {/* Visual indicator for resolved portion */}
-                        <div 
+                        <div
                           className={`absolute bottom-0 w-full rounded-t-lg transition-all duration-300 ${activeDay === i ? 'bg-white/20' : 'bg-blue-200'}`}
                           style={{ height: `${(data.resolved / data.volume) * 100}%` }}
                         ></div>
@@ -187,8 +186,8 @@ export default function AdminDashboardPage() {
               {/* Day Details Info Box */}
               <div className="rounded-2xl bg-gray-50 p-5 flex flex-col justify-center border border-dashed border-gray-200">
                 <div className="mb-4 flex items-center gap-2 border-b border-gray-200 pb-2">
-                   <CalendarDays size={14} className="text-[var(--accent)]" />
-                   <p className="text-[10px] font-black uppercase tracking-widest text-[var(--foreground)]">{dailyActivity[activeDay].day}'s Performance</p>
+                  <CalendarDays size={14} className="text-[var(--accent)]" />
+                  <p className="text-[10px] font-black uppercase tracking-widest text-[var(--foreground)]">{dailyActivity[activeDay].day}'s Performance</p>
                 </div>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -223,9 +222,9 @@ export default function AdminDashboardPage() {
 
           {/* Action Card */}
           <div className="relative flex flex-1 flex-col justify-center overflow-hidden rounded-xl bg-[var(--accent)] p-6 text-white shadow-xl">
-             <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-2xl"></div>
-             <div className="absolute -left-8 -bottom-8 h-32 w-32 rounded-full bg-white/5 blur-2xl"></div>
-             
+            <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-2xl"></div>
+            <div className="absolute -left-8 -bottom-8 h-32 w-32 rounded-full bg-white/5 blur-2xl"></div>
+
             <div className="relative z-10">
               <div className="mb-4 inline-flex rounded-xl bg-white/10 p-3 backdrop-blur-md">
                 <TrendingUp size={22} className="text-white" />
@@ -233,7 +232,7 @@ export default function AdminDashboardPage() {
               <p className="text-xs font-bold uppercase tracking-widest opacity-70">Upcoming Action</p>
               <h4 className="mt-2 text-2xl font-black leading-tight">Clear Maintenance Queue</h4>
               <p className="mt-4 text-xs font-medium opacity-80 leading-relaxed"> You have 5 high-priority maintenance issues requiring immediate assignment to staff.</p>
-              <button 
+              <button
                 onClick={handleTakeAction}
                 className="mt-6 flex w-full items-center justify-center rounded-xl bg-white py-3.5 text-sm font-black text-[var(--accent)] transition-all hover:scale-[1.02] shadow-xl active:scale-95"
               >
@@ -253,7 +252,7 @@ export default function AdminDashboardPage() {
                 <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">{selectedIssue.trackingId}</p>
                 <h3 className="text-xl font-black text-[var(--foreground)] mt-1">{selectedIssue.title}</h3>
               </div>
-              <button 
+              <button
                 onClick={() => setSelectedIssue(null)}
                 className="rounded-full p-2 hover:bg-gray-100 transition-colors"
               >
@@ -275,22 +274,22 @@ export default function AdminDashboardPage() {
 
             <div className="space-y-4">
               <label className="block text-sm font-bold text-[var(--foreground)]">Admin Response</label>
-              <textarea 
+              <textarea
                 value={response}
                 onChange={(e) => setResponse(e.target.value)}
                 placeholder="Type your response or action plan here..."
                 className="min-h-[120px] w-full rounded-2xl border border-[var(--border)] p-4 text-sm font-medium outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-blue-100"
               />
-              
+
               <div className="flex gap-3">
-                <button 
+                <button
                   onClick={submitResponse}
                   disabled={isUpdating || !response.trim()}
                   className="flex-1 rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white transition-all hover:bg-blue-700 disabled:opacity-50"
                 >
                   {isUpdating ? 'Updating...' : 'Submit Action'}
                 </button>
-                <button 
+                <button
                   onClick={() => setSelectedIssue(null)}
                   className="flex-1 rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--muted)] transition-all hover:bg-gray-50"
                 >
