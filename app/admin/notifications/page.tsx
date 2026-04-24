@@ -8,8 +8,8 @@ const initialNotifications = [
     title: "New issue reported in ICT category",
     date: "20 August 2026",
     status: "Pending",
-    iconBg: "bg-blue-50",
-    iconColor: "text-blue-500",
+    iconBg: "bg-[#21130D]/10",
+    iconColor: "text-[#21130D]",
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
     ),
@@ -79,7 +79,7 @@ export default function NotificationsPage() {
                 </span>
                 <div className="flex items-center gap-2">
                   <button 
-                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-500 transition hover:bg-blue-100"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#21130D]/10 text-[#21130D] transition hover:bg-[#21130D]/20"
                     title="Mark as Read"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>

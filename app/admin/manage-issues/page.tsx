@@ -156,7 +156,7 @@ export default function ManageIssuesPage() {
     value={keyword}
     onChange={(e) => setKeyword(e.target.value)}
     placeholder="Search keyword or ID..."
-    className="rounded-xl border border-[var(--border)] px-4 py-2.5 text-[15px] font-medium outline-none transition focus:border-blue-500 md:col-span-2"
+    className="rounded-xl border border-[var(--border)] px-4 py-2.5 text-[15px] font-medium outline-none transition focus:border-[var(--accent)] md:col-span-2"
   />
 
   {/* Category */}
@@ -164,7 +164,7 @@ export default function ManageIssuesPage() {
     <select
       value={category}
       onChange={(e) => setCategory(e.target.value as typeof category)}
-      className="appearance-none w-full rounded-xl border border-[var(--border)] px-4 pr-10 py-2.5 text-[15px] text-gray-500 font-medium outline-none transition focus:border-blue-500"
+      className="appearance-none w-full rounded-xl border border-[var(--border)] px-4 pr-10 py-2.5 text-[15px] text-gray-500 font-medium outline-none transition focus:border-[var(--accent)]"
     >
       {categories.map((c) => (
         <option key={c} className="text-gray-500">{c}</option>
@@ -182,7 +182,7 @@ export default function ManageIssuesPage() {
       <select
         value={priority}
         onChange={(e) => setPriority(e.target.value as typeof priority)}
-        className="appearance-none w-full rounded-xl border border-[var(--border)] px-4 pr-10 py-2.5 text-gray-500 text-[15px] font-medium outline-none transition focus:border-blue-500"
+        className="appearance-none w-full rounded-xl border border-[var(--border)] px-4 pr-10 py-2.5 text-gray-500 text-[15px] font-medium outline-none transition focus:border-[var(--accent)]"
       >
         {priorities.map((p) => (
           <option key={p} className="text-gray-500">{p}</option>
@@ -197,7 +197,7 @@ export default function ManageIssuesPage() {
       <select
         value={status}
         onChange={(e) => setStatus(e.target.value as typeof status)}
-        className="appearance-none w-full rounded-xl border border-[var(--border)] px-4 pr-10 py-2.5 text-gray-500 text-[15px] font-medium outline-none transition focus:border-blue-500"
+        className="appearance-none w-full rounded-xl border border-[var(--border)] px-4 pr-10 py-2.5 text-gray-500 text-[15px] font-medium outline-none transition focus:border-[var(--accent)]"
       >
         {statuses.map((s) => (
           <option key={s} className="text-gray-500">
@@ -250,7 +250,7 @@ export default function ManageIssuesPage() {
                 <div className="flex items-center">
                   <span className={`rounded-lg px-3 py-1 font-black text-[13px] uppercase tracking-wider ${
                     issue.status === 'Resolved' ? 'bg-emerald-100 text-emerald-600' :
-                    issue.status === 'In Progress' ? 'bg-blue-100 text-blue-600' :
+                    issue.status === 'In Progress' ? 'bg-[#21130D]/10 text-[#21130D]' :
                     'bg-amber-100 text-amber-600'
                   }`}>
                     {issue.status}
@@ -273,7 +273,7 @@ export default function ManageIssuesPage() {
                         issue.assignedTo,
                       )
                     }
-                    className="h-10 rounded-xl border border-[var(--border)] px-4 bg-gray-50 text-[13px] font-bold outline-none transition focus:border-blue-500 hover:border-[var(--accent)]"
+                    className="h-10 rounded-xl border border-[var(--border)] px-4 bg-gray-50 text-[13px] font-bold outline-none transition focus:border-[var(--accent)] hover:border-[var(--accent)]"
                   >
                     {statuses
                       .filter((item): item is IssueStatus => item !== "All")
@@ -299,7 +299,7 @@ export default function ManageIssuesPage() {
                   <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
                     Created {issue.createdAt}
                   </span>
-                  <button className="h-10 rounded-xl bg-[var(--accent)] px-6 text-[13px] font-black text-white hover:bg-blue-700 transition shadow-sm">
+                  <button className="h-10 rounded-xl bg-[var(--accent)] px-6 text-[13px] font-black text-white hover:brightness-125 transition shadow-sm">
                     Update Status
                   </button>
                 </div>
@@ -316,7 +316,7 @@ export default function ManageIssuesPage() {
                     {issue.comments.map((comment, idx) => (
                       <div key={idx} className="bg-white/50 rounded-lg p-3 border border-white">
                         <p className="text-[13px] font-bold text-[var(--foreground)]">
-                          <span className="text-blue-600 font-black">{comment.author}:</span> {comment.text}
+                          <span className="text-[#21130D] font-black">{comment.author}:</span> {comment.text}
                         </p>
                         <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold">{comment.timestamp}</p>
                       </div>
@@ -360,7 +360,7 @@ export default function ManageIssuesPage() {
                   value={adminResponse}
                   onChange={(e) => setAdminResponse(e.target.value)}
                   placeholder="Type your official response to the student..."
-                  className="min-h-[140px] w-full rounded-2xl border border-[var(--border)] p-4 text-[15px] font-medium outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-blue-100/50"
+                  className="min-h-[140px] w-full rounded-2xl border border-[var(--border)] p-4 text-[15px] font-medium outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[#21130D]/20"
                 />
               </div>
               
@@ -368,7 +368,7 @@ export default function ManageIssuesPage() {
                 <button 
                   onClick={submitResponse}
                   disabled={isSubmitting || !adminResponse.trim()}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-3.5 text-sm font-black text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 hover:translate-y-[-2px] active:translate-y-0 disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-3.5 text-sm font-black text-white shadow-lg shadow-[#21130D]/30 transition-all hover:brightness-125 hover:translate-y-[-2px] active:translate-y-0 disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none"
                 >
                   <Send size={18} />
                   {isSubmitting ? 'Sending...' : 'Send Response'}

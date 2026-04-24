@@ -181,7 +181,7 @@ export default function AdminDashboardPage() {
                   <div>
                     <span className={`text-[8px] font-black uppercase tracking-[0.2em] px-1.5 py-0.5 rounded ${
                       bc.priority === 'High' ? 'bg-red-100 text-red-600' : 
-                      bc.priority === 'Medium' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'
+                      bc.priority === 'Medium' ? 'bg-amber-100 text-amber-600' : 'bg-[#21130D]/10 text-[#21130D]'
                     }`}>
                       {bc.type}
                     </span>
@@ -215,7 +215,7 @@ export default function AdminDashboardPage() {
         <section className="lg:col-span-2 flex flex-col rounded-xl border border-[var(--border)] bg-white p-6 shadow-sm min-h-[400px]">
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-500">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#21130D]/10 text-[#21130D]">
                 <Activity size={20} />
               </div>
               <div>
@@ -243,12 +243,12 @@ export default function AdminDashboardPage() {
                 >
                   <div className="flex h-full flex-col justify-end gap-1">
                     <div 
-                      className={`w-full rounded-t-xl transition-all duration-300 relative ${activeDay === i ? 'bg-[var(--accent)] shadow-lg' : 'bg-gray-100 group-hover:bg-blue-50'}`} 
+                      className={`w-full rounded-t-xl transition-all duration-300 relative ${activeDay === i ? 'bg-[var(--accent)] shadow-lg' : 'bg-gray-100 group-hover:bg-[#21130D]/10'}`} 
                       style={{ height: `${(data.volume / 30) * 100}%` }}
                     >
                       {/* Visual indicator for resolved portion */}
                       <div 
-                        className={`absolute bottom-0 w-full rounded-t-lg transition-all duration-300 ${activeDay === i ? 'bg-white/20' : 'bg-blue-200'}`}
+                        className={`absolute bottom-0 w-full rounded-t-lg transition-all duration-300 ${activeDay === i ? 'bg-white/20' : 'bg-[#21130D]/20'}`}
                         style={{ height: `${(data.resolved / data.volume) * 100}%` }}
                       ></div>
                     </div>
@@ -332,7 +332,7 @@ export default function AdminDashboardPage() {
             <div className="mb-6 rounded-2xl bg-gray-50 p-4 border border-[var(--border)]">
               <div className="flex justify-between text-xs font-bold mb-2">
                 <span className="text-[var(--muted)]">Reporter: <span className="text-[var(--foreground)]">{selectedIssue.reporter}</span></span>
-                <span className={`px-2 py-0.5 rounded-md ${selectedIssue.priority === 'High' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
+                <span className={`px-2 py-0.5 rounded-md ${selectedIssue.priority === 'High' ? 'bg-red-100 text-red-600' : 'bg-[#21130D]/10 text-[#21130D]'}`}>
                   {selectedIssue.priority} Priority
                 </span>
               </div>
@@ -347,7 +347,7 @@ export default function AdminDashboardPage() {
                 value={response}
                 onChange={(e) => setResponse(e.target.value)}
                 placeholder="Type your response or action plan here..."
-                className="min-h-[120px] w-full rounded-2xl border border-[var(--border)] p-4 text-sm font-medium outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-blue-100"
+                className="min-h-[120px] w-full rounded-2xl border border-[var(--border)] p-4 text-sm font-medium outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[#21130D]/20"
               />
               
               <div className="flex gap-3">
@@ -419,7 +419,7 @@ export default function AdminDashboardPage() {
                   value={broadcastComment}
                   onChange={(e) => setBroadcastComment(e.target.value)}
                   placeholder="Share your thoughts or ask a question..."
-                  className="min-h-[100px] w-full rounded-2xl border border-[var(--border)] p-4 text-sm font-medium outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-blue-100 pr-12"
+                  className="min-h-[100px] w-full rounded-2xl border border-[var(--border)] p-4 text-sm font-medium outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[#21130D]/20 pr-12"
                 />
               </div>
               
@@ -427,7 +427,7 @@ export default function AdminDashboardPage() {
                 <button 
                   onClick={submitBroadcastComment}
                   disabled={isUpdating || !broadcastComment.trim()}
-                  className="flex-1 rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white transition-all hover:translate-y-[-2px] hover:bg-[var(--accent)] hover:shadow-xl hover:shadow-blue-900/20 disabled:opacity-50"
+                  className="flex-1 rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white transition-all hover:translate-y-[-2px] hover:bg-[var(--accent)] hover:shadow-xl hover:shadow-[#21130D]/40 disabled:opacity-50"
                 >
                   {isUpdating ? 'Posting...' : 'Post Comment'}
                 </button>
@@ -451,7 +451,7 @@ function StatWidget({ label, value, trend, icon, color }: { label: string, value
     emerald: "bg-emerald-50 text-emerald-600",
     amber: "bg-amber-50 text-amber-600",
     indigo: "bg-indigo-50 text-indigo-600",
-    blue: "bg-blue-50 text-blue-600",
+    blue: "bg-[#21130D]/10 text-[#21130D]",
   };
 
   return (

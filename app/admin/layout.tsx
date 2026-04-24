@@ -1,5 +1,6 @@
 "use client";
 
+import { nav } from "framer-motion/client";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
@@ -63,7 +64,7 @@ export default function AdminLayout({
               key={item.href}
               href={item.href}
               className={`flex items-center gap-4 rounded-xl px-4 py-3 text-[16px] font-bold transition-all duration-200 ${pathname === item.href
-                  ? "bg-[var(--accent)] text-white shadow-lg shadow-blue-200"
+                  ? "bg-[var(--accent)] text-white shadow-lg shadow-[#21130D]/40"
                   : "text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
                 }`}
             >
@@ -100,7 +101,7 @@ export default function AdminLayout({
                 type="text"
                 defaultValue={searchParams.get("q") || ""}
                 placeholder="Search issues, reporters..."
-                className="w-64 rounded-full bg-[var(--background)] border border-transparent px-10 py-2.5 text-sm font-medium outline-none transition-all focus:border-[var(--accent)] focus:bg-white focus:ring-4 focus:ring-blue-100/50 group-hover:bg-white group-hover:border-[var(--border)]"
+                className="w-64 rounded-full bg-[var(--background)] border border-transparent px-10 py-2.5 text-sm font-medium outline-none transition-all focus:border-[var(--accent)] focus:bg-white focus:ring-4 focus:ring-[#21130D]/20 group-hover:bg-white group-hover:border-[var(--border)]"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     const val = (e.target as HTMLInputElement).value;
