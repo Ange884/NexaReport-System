@@ -119,7 +119,8 @@ export default function ManageIssuesPage() {
     });
   }, [issues, keyword, category, priority, status]);
 
-  function updateIssue(id: string, updatedStatus: IssueStatus, assignTo: string) {
+  function updateIssue(id: string, updatedStatus: IssueStatus, 
+    assignTo: string) {
     setIssues((prev) => {
       const updated = prev.map((issue) =>
         issue.id === id
@@ -281,10 +282,9 @@ export default function ManageIssuesPage() {
                       ))}
                   </select>
                   <input
-                    defaultValue={issue.assignedTo}
                     onBlur={(e) => handleUpdate(issue.id, issue.status, e.target.value)}
                     placeholder="Assign to team..."
-                    className="h-10 w-48 rounded-xl border border-[var(--border)] px-4 bg-gray-50 text-[13px] font-medium outline-none transition focus:border-blue-500 hover:border-[var(--accent)]"
+                    className="h-10 w-48 rounded-xl border border-[var(--border)] px-4 bg-gray-50 text-[13px] font-medium outline-none transition focus:border-[var(--accent)]-500 hover:border-[var(--accent)]"
                   />
                   <button 
                     onClick={() => handleRespond(issue)}

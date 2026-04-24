@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { 
   CheckCircle, 
@@ -14,7 +14,8 @@ import {
   ShieldAlert,
   CalendarDays,
   Megaphone,
-  MessageCircle
+  MessageCircle,
+  RefreshCw
 } from "lucide-react";
 
 const staticBroadcasts = [
@@ -201,8 +202,9 @@ export default function AdminDashboardPage() {
         </section>
 
         {/* 3. Stat Widgets Column */}
-        <div className="flex flex-col gap-4 h-full justify-between">
+        <div className="flex flex-col gap-3 h-full justify-between">
           <StatWidget label="Resolved Issues" value="124" trend="+12%" icon={<ListChecks size={20} />} color="emerald" />
+          <StatWidget label="In Progress" value="18" trend="+5" icon={<RefreshCw size={20} />} color="blue" />
           <StatWidget label="Pending Actions" value="12" trend="-2" icon={<Clock size={20} />} color="amber" />
           <StatWidget label="Avg Resolution" value="2.4d" trend="-0.5" icon={<Zap size={20} />} color="indigo" />
         </div>
@@ -453,17 +455,17 @@ function StatWidget({ label, value, trend, icon, color }: { label: string, value
   };
 
   return (
-    <article className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-      <div className="flex gap-4">
-        <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${colorMap[color]} font-bold`}>
-          {icon}
+    <article className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md flex-1">
+      <div className="flex gap-3">
+        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${colorMap[color]} font-bold`}>
+          {React.cloneElement(icon as React.ReactElement)}
         </div>
         <div>
-          <p className="text-xs font-bold text-[var(--muted)]">{label}</p>
-          <p className="text-xl font-black text-[var(--foreground)] mt-0.5">{value}</p>
+          <p className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-tight">{label}</p>
+          <p className="text-lg font-black text-[var(--foreground)] mt-0.5">{value}</p>
         </div>
       </div>
-      <div className={`rounded-lg px-2 py-1 text-[10px] font-black ${trend.startsWith('+') || trend.startsWith('-0') ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
+      <div className={`rounded-lg px-2 py-0.5 text-[9px] font-black ${trend.startsWith('+') || trend.startsWith('-0') ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
         {trend}
       </div>
     </article>
