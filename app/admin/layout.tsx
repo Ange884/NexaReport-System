@@ -1,7 +1,7 @@
 "use client";
 
-import { nav } from "framer-motion/client";
 import Link from "next/link";
+import { Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const navItems = [
@@ -32,12 +32,36 @@ const navItems = [
   },
 ];
 
+// Extracted so useSearchParams is inside a Suspense boundary
+function AdminHeaderSearch() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  return (
+    <div className="relative group">
+      <input
+        type="text"
+        defaultValue={searchParams.get("q") || ""}
+        placeholder="Search issues, reporters..."
+        className="w-64 rounded-full bg-[var(--background)] border border-transparent px-10 py-2.5 text-sm font-medium outline-none transition-all focus:border-[var(--accent)] focus:bg-white focus:ring-4 focus:ring-[#21130D]/20 group-hover:bg-white group-hover:border-[var(--border)]"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            const val = (e.target as HTMLInputElement).value;
+            router.push(`/admin/manage-issues?q=${encodeURIComponent(val)}`);
+          }
+        }}
+      />
+      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--muted)] group-focus-within:text-[var(--accent)] transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   function handleLogout() {
     router.push("/login");
