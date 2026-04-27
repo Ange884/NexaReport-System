@@ -86,7 +86,7 @@ export default function LandingPage() {
             <Link href="/student/login" className="rounded-full border border-[#e2e8f0] px-5 py-2 text-sm font-bold text-[#718096] transition hover:border-[#21130D] hover:text-[#21130D]">
               Student Login
             </Link>
-            <Link href="/admin" className="rounded-full bg-[#21130D] px-5 py-2 text-sm font-black text-white shadow-[0_4px_14px_rgba(33,19,13,0.25)] transition hover:opacity-90">
+            <Link href="/admin/login" className="rounded-full bg-[#21130D] px-5 py-2 text-sm font-black text-white shadow-[0_4px_14px_rgba(33,19,13,0.25)] transition hover:opacity-90">
               Admin Portal →
             </Link>
           </div>
@@ -106,7 +106,7 @@ export default function LandingPage() {
               ))}
               <div className="mt-2 flex flex-col gap-2 border-t border-[#e2e8f0] pt-4">
                 <Link href="/student/login" className="rounded-xl border border-[#e2e8f0] px-4 py-2.5 text-center text-sm font-bold text-[#1a202c]">Student Login</Link>
-                <Link href="/admin" className="rounded-xl bg-[#21130D] px-4 py-2.5 text-center text-sm font-black text-white">Admin Portal</Link>
+                <Link href="/admin/login" className="rounded-xl bg-[#21130D] px-4 py-2.5 text-center text-sm font-black text-white">Admin Portal</Link>
               </div>
             </div>
           </div>
@@ -379,7 +379,7 @@ export default function LandingPage() {
               Student Login
               <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
             </Link>
-            <Link href="/admin" className="rounded-full border border-white/25 px-8 py-4 text-[0.95rem] font-bold text-white/70 transition hover:border-white/60 hover:text-white">
+            <Link href="/admin/login" className="rounded-full border border-white/25 px-8 py-4 text-[0.95rem] font-bold text-white/70 transition hover:border-white/60 hover:text-white">
               Admin Portal
             </Link>
           </div>
@@ -402,7 +402,7 @@ export default function LandingPage() {
           </p>
           <div className="flex items-center gap-6">
             <Link href="/student/login" className="text-[0.75rem] font-bold text-[#718096] transition hover:text-[#21130D]">Student Login</Link>
-            <Link href="/admin" className="text-[0.75rem] font-bold text-[#718096] transition hover:text-[#21130D]">Admin</Link>
+            <Link href="/admin/login" className="text-[0.75rem] font-bold text-[#718096] transition hover:text-[#21130D]">Admin</Link>
           </div>
         </div>
       </footer>

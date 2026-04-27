@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const navItems = [
@@ -68,8 +68,21 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
 
+  // Auth guard — skip for the login page itself
+  useEffect(() => {
+    if (pathname === "/admin/login") return;
+    const auth = sessionStorage.getItem("admin_auth");
+    if (!auth) router.replace("/admin/login");
+  }, [pathname, router]);
+
   function handleLogout() {
-    router.push("/student/login");
+    sessionStorage.removeItem("admin_auth");
+    router.push("/admin/login");
+  }
+
+  // Render login page without the dashboard shell
+  if (pathname === "/admin/login") {
+    return <>{children}</>;
   }
 
   return (

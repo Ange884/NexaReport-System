@@ -5,7 +5,7 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 
-export default function StudentLoginPage() {
+export default function AdminLoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -13,7 +13,8 @@ export default function StudentLoginPage() {
 
   function handleLogin(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    router.push("/student/dashboard");
+    sessionStorage.setItem("admin_auth", "true");
+    router.push("/admin");
   }
 
   return (
@@ -65,7 +66,7 @@ export default function StudentLoginPage() {
             Sign In
           </h2>
           <p className="mt-1 text-center text-sm text-[#718096]">
-            Access your student portal.
+            Access your admin portal.
           </p>
 
           <form className="mt-6 space-y-5" onSubmit={handleLogin}>
@@ -78,7 +79,7 @@ export default function StudentLoginPage() {
                 <Mail className="pointer-events-none absolute left-4 text-[#718096]" size={18} />
                 <input
                   type="email"
-                  placeholder="student@university.edu"
+                  placeholder="admin@university.edu"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -134,9 +135,9 @@ export default function StudentLoginPage() {
           </form>
 
           <p className="mt-6 text-center text-xs text-[#718096]">
-            Not a student?{" "}
-            <Link href="/admin/login" className="font-bold text-[#21130D] hover:underline">
-              Admin login
+            Not an admin?{" "}
+            <Link href="/student/login" className="font-bold text-[#21130D] hover:underline">
+              Student login
             </Link>
           </p>
         </div>
