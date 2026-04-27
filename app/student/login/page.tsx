@@ -51,19 +51,20 @@ export default function StudentLoginPage() {
           {/* Top accent bar */}
           <div className="absolute left-0 top-0 h-1.5 w-full bg-[#21130D]" />
 
-          {/* Logo */}
-          <div className="mb-4 flex justify-center md:justify-start">
+          {/* Logo + Brand */}
+          <div className="mb-6 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#21130D] text-white shadow-lg">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-6 w-6">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
+            <span className="text-[1.4rem] font-black tracking-[0.08em] text-[#21130D]">NEXA</span>
           </div>
 
-          <h2 className="text-2xl font-extrabold tracking-tight text-[#21130D]">
-            Student Sign In
+          <h2 className="text-center text-2xl font-extrabold tracking-tight text-[#21130D]">
+            Sign In
           </h2>
-          <p className="mt-1 text-sm text-[#718096]">
+          <p className="mt-1 text-center text-sm text-[#718096]">
             Access your student portal.
           </p>
 
