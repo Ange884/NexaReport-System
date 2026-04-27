@@ -1,0 +1,21 @@
+{
+  "default_branch": "main",
+  "branches": [
+    "admin-ui",
+    "main",
+    "origin",
+    "student-ui"
+  ],
+  "parent": {
+    "admin-ui": "main",
+    "main": null,
+    "origin": "main",
+    "student-ui": "main"
+  },
+  "order": [
+    "main",
+    "admin-ui",
+    "origin",
+    "student-ui"
+  ]
+}
