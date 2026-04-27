@@ -5,12 +5,12 @@ import "./globals.css";
 const urbanist = Urbanist({
   variable: "--font-urbanist",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
-  title: "NexaReport Admin",
-  description: "Admin issue management dashboard for NexaReport",
+  title: "NexaReport — Student Issue Reporting System",
+  description: "A fast, secure platform for students to report issues to staff. Your voice matters here.",
 };
 
 export default function RootLayout({
@@ -20,6 +20,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${urbanist.variable} h-full antialiased`}>
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet" />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
