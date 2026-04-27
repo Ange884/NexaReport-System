@@ -11,6 +11,11 @@ const urbanist = Urbanist({
 export const metadata: Metadata = {
   title: "NexaReport — Student Issue Reporting System",
   description: "A fast, secure platform for students to report issues to staff. Your voice matters here.",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
