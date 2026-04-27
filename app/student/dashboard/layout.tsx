@@ -43,74 +43,46 @@ export default function StudentDashboardLayout({ children }: { children: React.R
   }, []);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f0f4f8]">
-      <style>{`
-        .nexa-outer-path,.nexa-wavy-path{stroke-dasharray:300;stroke-dashoffset:300;animation:nexa-draw 2s ease forwards}
-        .nexa-wavy-path{stroke-dasharray:200;stroke-dashoffset:200;animation-delay:.6s}
-        @keyframes nexa-draw{to{stroke-dashoffset:0}}
-        .nexa-pulse{animation:nexa-pulse 2s ease-in-out infinite}
-        @keyframes nexa-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
-      `}</style>
+    <div className="flex h-screen overflow-hidden bg-[var(--background)]">
 
       {/* Mobile Header */}
-      <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-[#e2e8f0] bg-white/95 px-4 backdrop-blur-sm md:hidden">
+      <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-[var(--border)] bg-white px-4 md:hidden">
         <button
           onClick={() => setIsSidebarOpen(true)}
           aria-label="Toggle Menu"
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-[rgba(33,19,13,0.06)] text-[#21130D] transition-all duration-200 hover:bg-[rgba(33,19,13,0.12)]"
+          className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
         >
           <Menu size={20} />
         </button>
-        <span className="text-[1.1rem] font-black tracking-[0.06em] text-[#21130D]">NEXA</span>
+        <span className="text-lg font-black tracking-tight text-[var(--accent)]">NEXAREPORT</span>
         <div className="w-9" />
       </header>
 
       {/* Overlay */}
       {isSidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm md:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
+        <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm md:hidden" onClick={() => setIsSidebarOpen(false)} />
       )}
 
       {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-[#e2e8f0] bg-white px-4 py-6 shadow-[4px_0_24px_rgba(33,19,13,0.05)] transition-transform duration-300 md:static md:translate-x-0 md:flex-shrink-0 md:shadow-none ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
+      <aside className={`fixed inset-y-0 left-0 z-50 flex h-full w-64 flex-col overflow-y-auto border-r border-[var(--border)] bg-white p-6 transition-transform duration-300 md:static md:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+
         {/* Brand */}
-        <div className="mb-8 flex items-center gap-3 px-2">
-          <div className="flex h-[42px] w-[42px] flex-shrink-0 items-center justify-center rounded-xl bg-[#21130D] shadow-[0_4px_16px_rgba(33,19,13,0.3)]">
-            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 100 100" fill="none">
-              <polygon points="50,26 78,75 22,75" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="3" strokeLinejoin="round" />
-              <circle cx="26" cy="57" r="8" fill="rgba(255,255,255,0.15)" />
-              <circle cx="67" cy="45" r="8" fill="rgba(255,255,255,0.15)" />
-              <polygon className="nexa-outer-path" points="50,15 90,85 10,85" fill="none" stroke="#FFFFFF" strokeWidth="6" strokeLinejoin="round" />
-              <path className="nexa-wavy-path" d="M 26 57 C 38 75, 55 30, 67 45" fill="none" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" />
-              <circle cx="26" cy="57" r="4.5" fill="#FFFFFF" />
-              <circle cx="67" cy="45" r="4.5" fill="#FFFFFF" />
-              <circle cx="50" cy="71" r="3" fill="#FFFFFF" className="nexa-pulse" />
+        <div className="mb-10 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent)] text-white shadow-lg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-6 w-6">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
             </svg>
           </div>
-          <span className="text-[1.4rem] font-black tracking-[-0.04em] text-[#21130D]">Nexa</span>
+          <span className="text-xl font-black tracking-tight text-[var(--accent)]">NEXAREPORT</span>
           {isSidebarOpen && (
-            <button
-              onClick={() => setIsSidebarOpen(false)}
-              className="ml-auto flex h-8 w-8 items-center justify-center rounded-lg text-[#718096] transition hover:bg-[rgba(33,19,13,0.06)] hover:text-[#21130D] md:hidden"
-            >
+            <button onClick={() => setIsSidebarOpen(false)} className="ml-auto flex h-8 w-8 items-center justify-center rounded-lg text-[var(--muted)] hover:text-[var(--accent)] md:hidden">
               <X size={18} />
             </button>
           )}
         </div>
 
-        {/* Section label */}
-        <p className="mb-2 px-4 text-[0.65rem] font-extrabold uppercase tracking-[0.14em] text-[#718096] opacity-60">
-          Navigation
-        </p>
-
         {/* Nav */}
-        <nav className="flex flex-1 flex-col gap-0.5">
+        <nav className="flex flex-col gap-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -118,19 +90,16 @@ export default function StudentDashboardLayout({ children }: { children: React.R
               <Link
                 key={item.href}
                 href={item.href}
-                className={`group relative flex items-center gap-3.5 rounded-xl px-4 py-3 text-[0.9rem] font-bold transition-all duration-200 ${
+                className={`flex items-center gap-4 rounded-xl px-4 py-3 text-[16px] font-bold transition-all duration-200 ${
                   isActive
-                    ? "bg-[#21130D] text-white shadow-[0_6px_20px_rgba(33,19,13,0.2)]"
-                    : "text-[#718096] hover:bg-[rgba(33,19,13,0.04)] hover:text-[#21130D] hover:translate-x-1"
+                    ? "bg-[var(--accent)] text-white shadow-lg shadow-[#21130D]/40"
+                    : "text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
                 }`}
               >
-                {isActive && (
-                  <span className="absolute left-0 top-[22%] h-[56%] w-[3px] rounded-r-full bg-white opacity-60" />
-                )}
-                <Icon size={19} className="flex-shrink-0" strokeWidth={isActive ? 2.5 : 2} />
-                <span>{item.label}</span>
+                <Icon size={20} />
+                {item.label}
                 {item.badge && (
-                  <span className={`ml-auto flex h-5 w-5 items-center justify-center rounded-full text-[0.6rem] font-black ${isActive ? "bg-white text-[#21130D]" : "bg-[#21130D] text-white"}`}>
+                  <span className={`ml-auto flex h-5 w-5 items-center justify-center rounded-full text-[0.6rem] font-black ${isActive ? "bg-white text-[var(--accent)]" : "bg-[var(--accent)] text-white"}`}>
                     {item.badge}
                   </span>
                 )}
@@ -139,94 +108,89 @@ export default function StudentDashboardLayout({ children }: { children: React.R
           })}
         </nav>
 
-        {/* Promo block */}
-        <div className="mx-1 my-4 overflow-hidden rounded-2xl bg-[rgba(33,19,13,0.04)] p-4 text-[#21130D]">
-          <Sparkles size={18} className="mb-2 opacity-70" />
-          <p className="text-[0.85rem] font-black">Nexa Pro</p>
-          <p className="mt-1 text-[0.7rem] leading-relaxed opacity-55">
-            Unlock advanced analytics and priority support.
-          </p>
-          <button className="mt-3 w-full rounded-xl bg-[#21130D] py-2 text-[0.75rem] font-black text-white shadow-[0_4px_12px_rgba(33,19,13,0.2)] transition-all duration-200 hover:opacity-90 hover:-translate-y-px">
+        {/* Promo */}
+        <div className="mt-8 rounded-xl border border-[var(--border)] bg-[var(--accent-soft)] p-4">
+          <Sparkles size={18} className="mb-2 text-[var(--accent)]" />
+          <p className="text-sm font-black text-[var(--accent)]">Nexa Pro</p>
+          <p className="mt-1 text-[0.7rem] leading-relaxed text-[var(--muted)]">Unlock advanced analytics and priority support.</p>
+          <button className="mt-3 w-full rounded-xl bg-[var(--accent)] py-2 text-xs font-black text-white transition hover:brightness-110">
             Upgrade Now
           </button>
         </div>
 
         {/* Logout */}
-        <div className="border-t border-[#e2e8f0] pt-3">
-          <Link
-            href="/login"
-            className="flex items-center gap-3.5 rounded-xl px-4 py-3 text-[0.9rem] font-bold text-red-400 transition-all duration-200 hover:bg-red-50 hover:text-red-500"
+        <div className="mt-10 mb-6">
+          <button
+            onClick={() => router.push("/student/login")}
+            className="flex w-full items-center gap-4 rounded-xl px-4 py-3 text-sm font-bold text-red-500 transition-all hover:bg-red-50"
           >
-            <LogOut size={19} strokeWidth={2} />
+            <LogOut size={20} />
             Logout
-          </Link>
+          </button>
         </div>
       </aside>
 
-      {/* Main area */}
+      {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
 
-        {/* Top Navbar */}
-        <nav className="flex h-16 shrink-0 items-center justify-between border-b border-[#e2e8f0] bg-white/95 px-6 backdrop-blur-sm">
-          {/* Search */}
-          <div className="relative hidden max-w-sm flex-1 md:flex">
-            <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#718096] opacity-70" />
-            <input
-              type="text"
-              placeholder="Search for issues..."
-              className="w-full rounded-xl border border-[#e2e8f0] bg-[#f0f4f8] py-2.5 pl-9 pr-12 text-[0.875rem] font-medium text-[#1a202c] outline-none transition-all duration-300 placeholder:text-[#a0aec0] focus:border-[#21130D] focus:bg-white focus:shadow-[0_0_0_4px_rgba(33,19,13,0.06)]"
-            />
-            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md border border-[#e2e8f0] bg-white px-1.5 py-0.5 text-[0.6rem] font-bold text-[#718096] shadow-sm">
-              ⌘K
-            </kbd>
+        {/* Top Header */}
+        <header className="flex h-20 shrink-0 items-center justify-between border-b border-[var(--border)] bg-white px-8">
+          <div>
+            <h2 className="text-sm font-bold text-[var(--muted)]">{greeting}, Alex</h2>
+            <p className="text-2xl font-black text-[var(--foreground)]">Student Portal</p>
           </div>
 
-          {/* Right actions */}
-          <div className="ml-auto flex items-center gap-2.5">
+          <div className="flex items-center gap-4">
+            {/* Search */}
+            <div className="relative group hidden md:block">
+              <input
+                type="text"
+                placeholder="Search issues..."
+                className="w-64 rounded-full bg-[var(--background)] border border-transparent px-10 py-2.5 text-sm font-medium outline-none transition-all focus:border-[var(--accent)] focus:bg-white focus:ring-4 focus:ring-[#21130D]/20 group-hover:bg-white group-hover:border-[var(--border)]"
+              />
+              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--muted)]">
+                <Search size={16} />
+              </div>
+            </div>
+
+            {/* Quick add */}
             <button
               aria-label="Quick Add"
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#e2e8f0] text-[#718096] transition-all duration-200 hover:border-[rgba(33,19,13,0.2)] hover:bg-[rgba(33,19,13,0.03)] hover:text-[#21130D]"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--background)] text-[var(--muted)] transition hover:bg-white hover:border hover:border-[var(--border)] hover:text-[var(--accent)]"
             >
-              <Plus size={18} />
+              <Plus size={20} />
             </button>
+
+            {/* Notifications */}
             <button
               aria-label="Notifications"
               onClick={() => router.push("/student/dashboard/notifications")}
-              className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-[#e2e8f0] text-[#718096] transition-all duration-200 hover:border-[rgba(33,19,13,0.2)] hover:bg-[rgba(33,19,13,0.03)] hover:text-[#21130D]"
+              className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[var(--background)] text-[var(--muted)] transition hover:bg-white hover:border hover:border-[var(--border)] hover:text-[var(--accent)]"
             >
-              <Bell size={18} />
-              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
+              <Bell size={20} />
+              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
             </button>
 
-            {/* Divider */}
-            <div className="mx-1 h-6 w-px bg-[#e2e8f0]" />
-
-            {/* User info */}
-            <div className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-1.5 transition-all duration-200 hover:bg-[rgba(33,19,13,0.03)]">
-              <div className="hidden text-right md:block">
-                <p className="text-[0.875rem] font-bold leading-none text-[#1a202c]">
-                  {greeting}, Alex
-                </p>
-                <p className="mt-0.5 text-[0.6rem] font-extrabold uppercase tracking-[0.1em] text-[#718096]">
-                  Student Portal
-                </p>
+            {/* User */}
+            <Link href="/student/dashboard/settings">
+              <div className="flex items-center gap-3">
+                <div className="hidden text-right md:block">
+                  <p className="text-sm font-bold text-[var(--foreground)] leading-none">Alex Johnson</p>
+                  <p className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-widest mt-1">Student</p>
+                </div>
+                <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-[var(--accent)] text-xs font-black text-white border-2 border-white shadow-md">
+                  {profilePhoto ? (
+                    <img src={profilePhoto} alt="Profile" className="h-full w-full object-cover" />
+                  ) : "AJ"}
+                </div>
               </div>
-              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#21130D] text-[0.7rem] font-black text-white ring-2 ring-[rgba(33,19,13,0.1)] ring-offset-1">
-                {profilePhoto ? (
-                  <img src={profilePhoto} alt="Profile" className="h-full w-full object-cover" />
-                ) : (
-                  "AJ"
-                )}
-              </div>
-            </div>
+            </Link>
           </div>
-        </nav>
+        </header>
 
-        {/* Page content */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-[1200px] px-6 pb-14 pt-8 md:px-10">
-            {children}
-          </div>
+        {/* Page Content */}
+        <main className="flex-1 overflow-y-auto p-8 animate-fade-in">
+          {children}
         </main>
       </div>
     </div>

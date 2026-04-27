@@ -1,86 +1,104 @@
 "use client";
 
-import React from "react";
-import { Search, FolderOpen, Filter } from "lucide-react";
+import React, { useState } from "react";
+import { ChevronDown, FolderOpen } from "lucide-react";
+
+type IssueStatus = "Pending" | "In Progress" | "Resolved";
+type IssueCategory = "Academic" | "Infrastructure" | "Administrative" | "Technical";
+
+const categories: ("All" | IssueCategory)[] = ["All", "Academic", "Infrastructure", "Administrative", "Technical"];
+const statuses: ("All" | IssueStatus)[] = ["All", "Pending", "In Progress", "Resolved"];
+
+const myIssues: any[] = [];
 
 export default function MyIssues() {
+  const [keyword, setKeyword] = useState("");
+  const [category, setCategory] = useState<(typeof categories)[number]>("All");
+  const [status, setStatus] = useState<(typeof statuses)[number]>("All");
+
+  const filtered = myIssues.filter((issue) => {
+    const kw = issue.title?.toLowerCase().includes(keyword.toLowerCase()) || issue.trackingId?.toLowerCase().includes(keyword.toLowerCase());
+    const cat = category === "All" || issue.category === category;
+    const st = status === "All" || issue.status === status;
+    return kw && cat && st;
+  });
+
   return (
-    <div className="mx-auto max-w-5xl">
-      {/* Header */}
-      <div className="mb-10 flex items-start gap-5">
-        <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-[rgba(33,19,13,0.06)] text-[#21130D] shadow-[inset_0_2px_8px_rgba(33,19,13,0.08)] ring-1 ring-[rgba(33,19,13,0.06)]">
-          <FolderOpen size={28} strokeWidth={2} />
-        </div>
+    <section className="card rounded-3xl border border-[var(--border)] bg-[#f8f9fc] p-8 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-2">
         <div>
-          <h1 className="text-[2.25rem] font-black leading-tight tracking-tight text-[#1a202c]">
-            My Issues
-          </h1>
-          <p className="mt-1.5 text-[1.05rem] font-medium leading-relaxed text-[#718096]">
-            Keep track of all the issues you&apos;ve submitted and monitor their progress.
+          <h2 className="text-2xl font-black text-[var(--foreground)]">My Issues</h2>
+          <p className="mt-1 text-sm font-bold text-[var(--muted)]">
+            View and track all your submitted issues.
           </p>
         </div>
       </div>
 
-      {/* Filter Bar */}
-      <div className="mb-8 flex flex-col gap-4 rounded-3xl border border-[#e2e8f0] bg-white p-5 shadow-[0_4px_24px_rgba(33,19,13,0.05),0_1px_4px_rgba(33,19,13,0.04)] transition-shadow duration-300 hover:shadow-[0_12px_40px_rgba(33,19,13,0.08)] sm:flex-row sm:items-center">
-        {/* Search */}
-        <div className="relative flex-1">
-          <Search
-            size={18}
-            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#718096] opacity-70"
-          />
-          <input
-            type="text"
-            placeholder="Search by title or tracking ID..."
-            className="w-full rounded-2xl border-[1.5px] border-[#e2e8f0] bg-[rgba(33,19,13,0.02)] py-3.5 pl-11 pr-5 text-[0.95rem] font-medium text-[#1a202c] outline-none transition-all duration-300 placeholder:text-[#a0aec0] focus:border-[#21130D] focus:bg-white focus:shadow-[0_0_0_5px_rgba(33,19,13,0.06),0_4px_16px_rgba(33,19,13,0.06)]"
-          />
+      {/* Filters */}
+      <div className="mt-8 grid grid-cols-1 gap-4 rounded-2xl border border-[var(--border)] bg-white p-4 shadow-sm md:grid-cols-4">
+        <input
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          placeholder="Search by title or tracking ID..."
+          className="rounded-xl border border-[var(--border)] px-4 py-2.5 text-[15px] font-medium outline-none transition focus:border-[var(--accent)] md:col-span-2"
+        />
+
+        <div className="relative">
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value as typeof category)}
+            className="w-full appearance-none rounded-xl border border-[var(--border)] px-4 py-2.5 pr-10 text-[15px] font-medium text-gray-500 outline-none transition focus:border-[var(--accent)]"
+          >
+            {categories.map((c) => <option key={c}>{c}</option>)}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
         </div>
 
-        {/* Filters */}
-        <div className="flex gap-3">
-          {[
-            { placeholder: "All Categories", options: ["Academic", "Infrastructure", "Administrative"] },
-            { placeholder: "All Statuses", options: ["Pending", "In Progress", "Resolved"] },
-          ].map((f) => (
-            <div key={f.placeholder} className="relative">
-              <select className="appearance-none rounded-2xl border-[1.5px] border-[#e2e8f0] bg-[rgba(33,19,13,0.02)] py-3.5 pl-4 pr-10 text-[0.875rem] font-bold text-[#718096] outline-none transition-all duration-300 hover:border-[rgba(33,19,13,0.2)] hover:bg-white focus:border-[#21130D] focus:bg-white focus:text-[#21130D] focus:shadow-[0_0_0_5px_rgba(33,19,13,0.06)]">
-                <option>{f.placeholder}</option>
-                {f.options.map((o) => <option key={o}>{o}</option>)}
-              </select>
-              <div className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[#718096]">
-                <Filter size={14} strokeWidth={2.5} />
-              </div>
+        <div className="relative">
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value as typeof status)}
+            className="w-full appearance-none rounded-xl border border-[var(--border)] px-4 py-2.5 pr-10 text-[15px] font-medium text-gray-500 outline-none transition focus:border-[var(--accent)]"
+          >
+            {statuses.map((s) => <option key={s}>{s}</option>)}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+        </div>
+      </div>
+
+      {/* Issues list */}
+      <div className="mt-6 flex flex-col gap-4">
+        {filtered.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-[var(--border)] p-12 text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-[#21130D]/10 text-[#21130D]">
+              <FolderOpen size={28} strokeWidth={1.75} />
             </div>
-          ))}
-        </div>
+            <p className="text-[15px] font-black text-[var(--foreground)]">No issues found</p>
+            <p className="mt-1 text-sm font-bold text-[var(--muted)]">You haven&apos;t submitted any issues yet.</p>
+          </div>
+        ) : (
+          filtered.map((issue: any) => (
+            <article key={issue.id} className="flex flex-col gap-4 rounded-2xl border border-[var(--border)] bg-white p-5 shadow-sm transition hover:shadow-md">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-[15px] font-black text-[var(--foreground)]">{issue.title}</h3>
+                    <span className="text-xs font-bold text-gray-400">({issue.trackingId})</span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-2 text-xs font-bold">
+                    <span className="rounded-md bg-gray-100 px-2.5 py-1 text-gray-600">{issue.category}</span>
+                  </div>
+                </div>
+                <span className={`rounded-lg px-3 py-1 text-[11px] font-black uppercase tracking-wider ${
+                  issue.status === "Resolved" ? "bg-emerald-100 text-emerald-600" :
+                  issue.status === "In Progress" ? "bg-[#21130D]/10 text-[#21130D]" :
+                  "bg-amber-100 text-amber-600"
+                }`}>{issue.status}</span>
+              </div>
+            </article>
+          ))
+        )}
       </div>
-
-      {/* Empty State */}
-      <div className="relative flex flex-col items-center justify-center gap-6 overflow-hidden rounded-3xl border border-[#e2e8f0] bg-white px-8 py-32 text-center shadow-[0_8px_40px_rgba(33,19,13,0.05)] transition-shadow duration-300 hover:shadow-[0_16px_56px_rgba(33,19,13,0.08)]">
-        {/* Decorative radial glow */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(33,19,13,0.03)_0%,transparent_65%)]" />
-        <div className="pointer-events-none absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[rgba(33,19,13,0.02)] blur-3xl" />
-
-        <div className="relative flex h-28 w-28 animate-[float_4s_ease-in-out_infinite] items-center justify-center rounded-[2rem] bg-[rgba(33,19,13,0.05)] text-[#21130D] shadow-[0_8px_32px_rgba(33,19,13,0.08),inset_0_1px_0_rgba(255,255,255,0.8)] ring-8 ring-[rgba(33,19,13,0.03)]">
-          <FolderOpen size={52} strokeWidth={1.75} />
-        </div>
-
-        <div className="relative z-10 mt-2 space-y-2">
-          <h3 className="text-[1.75rem] font-black tracking-tight text-[#1a202c]">
-            No issues found
-          </h3>
-          <p className="text-[1.05rem] font-semibold text-[#718096]">
-            You haven&apos;t submitted any issues yet.
-          </p>
-        </div>
-      </div>
-
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-12px); }
-        }
-      `}</style>
-    </div>
+    </section>
   );
 }
