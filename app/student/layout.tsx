@@ -1,0 +1,254 @@
+"use client";
+
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/app/lib/hooks";
+import { NotificationProvider, useNotificationContext } from "@/app/lib/NotificationContext";
+import { isStudentRole } from "@/app/lib/types";
+
+// ─── Nav items ────────────────────────────────────────────────────────────────
+
+const navItems = [
+  {
+    href: "/student/dashboard",
+    label: "Dashboard",
+    exact: true,
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+    ),
+  },
+  {
+    href: "/student/dashboard/my-issues",
+    label: "My Issues",
+    exact: false,
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+    ),
+  },
+  {
+    href: "/student/dashboard/new-issue",
+    label: "Submit Issue",
+    exact: false,
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+    ),
+  },
+  {
+    href: "/student/dashboard/notifications",
+    label: "Notifications",
+    exact: false,
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+    ),
+  },
+  {
+    href: "/student/dashboard/profile",
+    label: "Profile",
+    exact: false,
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+    ),
+  },
+];
+
+// ─── Loading skeleton ─────────────────────────────────────────────────────────
+
+function AuthLoadingSkeleton() {
+  return (
+    <div className="flex h-screen items-center justify-center bg-[var(--background)]">
+      <div className="flex flex-col items-center gap-4">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#21130D] text-white shadow-lg">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-7 w-7">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+          </svg>
+        </div>
+        <div className="h-1 w-48 overflow-hidden rounded-full bg-[#e2e8f0]">
+          <div className="h-full animate-pulse rounded-full bg-[#21130D] w-3/4" />
+        </div>
+        <p className="text-xs font-bold uppercase tracking-widest text-[#a0aec0]">
+          Loading...
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Inner layout component (consumes NotificationContext) ────────────────────
+
+function StudentLayoutContent({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user, isLoading, logout } = useAuth();
+  const { unreadCount } = useNotificationContext();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const isLoginPage = pathname === "/student/login";
+
+  // Client-side auth guard
+  useEffect(() => {
+    if (isLoginPage) return;
+    if (isLoading) return;
+
+    if (!user) {
+      router.replace(`/student/login?next=${encodeURIComponent(pathname)}`);
+      return;
+    }
+
+    if (!isStudentRole(user.role)) {
+      import("@/app/lib/types").then(({ getDefaultRoute }) => {
+        router.replace(getDefaultRoute(user.role));
+      });
+    }
+  }, [isLoginPage, isLoading, user, pathname, router]);
+
+  if (isLoginPage) return <>{children}</>;
+  if (isLoading) return <AuthLoadingSkeleton />;
+  if (!user || !isStudentRole(user.role)) return null;
+
+  const displayName = user.email.split("@")[0];
+  const roleLabel = user.role.replace(/_/g, " ");
+
+  function isActive(item: (typeof navItems)[0]): boolean {
+    return item.exact ? pathname === item.href : pathname.startsWith(item.href);
+  }
+
+  return (
+    <div className="flex h-screen overflow-hidden bg-[var(--background)]">
+      {/* ── Sidebar ─────────────────────────────────────────────────────────── */}
+      <aside className="animate-sidebar sticky top-0 hidden h-full w-64 flex-col border-r border-[var(--border)] bg-white p-6 md:flex overflow-y-auto">
+        <div className="mb-10 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent)] text-white shadow-lg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-6 w-6">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+            </svg>
+          </div>
+          <span className="text-xl font-black tracking-tight text-[var(--accent)]">NEXAREPORT</span>
+        </div>
+
+        <nav className="flex flex-1 flex-col gap-2">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`relative flex items-center gap-4 rounded-xl px-4 py-3 text-[15px] font-bold transition-all duration-200 ${
+                isActive(item)
+                  ? "bg-[var(--accent)] text-white shadow-lg shadow-[#21130D]/40"
+                  : "text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
+              }`}
+            >
+              {item.icon}
+              {item.label}
+              {item.label === "Notifications" && unreadCount > 0 && (
+                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black text-white">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="mt-6 border-t border-[var(--border)] pt-6">
+          <div className="mb-4 flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-xs font-black text-white shadow">
+              {displayName.slice(0, 2).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-bold text-[var(--foreground)] capitalize">{displayName}</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">{roleLabel}</p>
+            </div>
+          </div>
+          <button
+            onClick={logout}
+            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-red-500 transition-all hover:bg-red-50"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            Logout
+          </button>
+        </div>
+      </aside>
+
+      {/* ── Mobile menu ─────────────────────────────────────────────────────── */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={() => setMobileMenuOpen(false)} />
+      )}
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-[var(--border)] bg-white p-6 transition-transform duration-300 md:hidden ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="mb-8 flex items-center justify-between">
+          <span className="text-lg font-black tracking-tight text-[var(--accent)]">NEXAREPORT</span>
+          <button onClick={() => setMobileMenuOpen(false)} className="rounded-lg p-1 text-[var(--muted)]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <nav className="flex flex-1 flex-col gap-2">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setMobileMenuOpen(false)}
+              className={`flex items-center gap-4 rounded-xl px-4 py-3 text-[15px] font-bold transition-all duration-200 ${
+                isActive(item) ? "bg-[var(--accent)] text-white" : "text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
+              }`}
+            >
+              {item.icon}
+              {item.label}
+              {item.label === "Notifications" && unreadCount > 0 && (
+                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black text-white">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </Link>
+          ))}
+        </nav>
+        <button onClick={logout} className="mt-4 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-50">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          Logout
+        </button>
+      </aside>
+
+      {/* ── Main ───────────────────────────────────────────────────────────── */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <header className="flex h-20 shrink-0 items-center justify-between border-b border-[var(--border)] bg-white px-8">
+          <div className="flex items-center gap-4">
+            <button onClick={() => setMobileMenuOpen(true)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] text-[var(--muted)] md:hidden">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+            <div>
+              <h2 className="text-sm font-bold text-[var(--muted)]">Welcome, <span className="capitalize">{displayName}</span></h2>
+              <p className="text-2xl font-black text-[var(--foreground)]">My Dashboard</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Link href="/student/dashboard/notifications">
+              <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[var(--background)] text-[var(--muted)] transition hover:text-[var(--accent)] cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                {unreadCount > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-black text-white">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </div>
+            </Link>
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent)] border-2 border-white shadow-md text-xs font-black text-white cursor-pointer">
+              {displayName.slice(0, 2).toUpperCase()}
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-y-auto p-8 animate-fade-in">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+// ─── Outer layout ─────────────────────────────────────────────────────────────
+
+export default function StudentLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <NotificationProvider>
+      <StudentLayoutContent>{children}</StudentLayoutContent>
+    </NotificationProvider>
+  );
+}

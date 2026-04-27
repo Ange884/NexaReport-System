@@ -1,113 +1,219 @@
 "use client";
 
-import React, { useState } from "react";
-import { Mail, User, ShieldCheck, Send, Info, CheckCircle2 } from "lucide-react";
+import React, { FormEvent, useState } from "react";
+import {
+  Mail, User, ShieldCheck, Send, Info,
+  CheckCircle2, AlertCircle, Loader2, ChevronDown,
+} from "lucide-react";
+import { inviteUser } from "@/app/lib/api";
+import type { UserRole } from "@/app/lib/types";
+
+// ─── Role options matching backend UserRole enum ──────────────────────────────
+
+const ROLE_OPTIONS: { value: UserRole; label: string; description: string }[] = [
+  { value: "ADMIN",              label: "Administrator",      description: "Full system control and user management." },
+  { value: "TEACHER",           label: "Teacher",            description: "Academic oversight and issue review." },
+  { value: "NURSE",             label: "Nurse",              description: "Health & welfare issue handler." },
+  { value: "ADMINISTRATIVE_STAFF", label: "Administrative Staff", description: "Internal operations and task execution." },
+  { value: "COMMITTEE_MEMBER",  label: "Committee Member",   description: "Committee-level issue submission." },
+  { value: "CLASS_MONITOR",     label: "Class Monitor",      description: "Class-level issue reporting." },
+  { value: "STUDENT",           label: "Student",            description: "General student issue submission only." },
+];
 
 export default function SendInvitePage() {
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    role: "Staff",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successMsg, setSuccessMsg] = useState("");
+  const [fullNames, setFullNames] = useState("");
+  const [email,     setEmail]     = useState("");
+  const [role,      setRole]      = useState<UserRole>("TEACHER");
+  const [className, setClassName] = useState("");
+  const [position,  setPosition]  = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [success,      setSuccess]      = useState<{ email: string; tempPassword: string } | null>(null);
+  const [error,        setError]        = useState<string | null>(null);
+
+  const needsClass    = role === "CLASS_MONITOR" || role === "STUDENT";
+  const needsPosition = role === "COMMITTEE_MEMBER";
+  const selectedRoleInfo = ROLE_OPTIONS.find((r) => r.value === role);
+
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    setError(null);
+    setSuccess(null);
+
+    if (!fullNames.trim() || !email.trim()) {
+      setError("Full name and email are required.");
+      return;
+    }
+    if (needsClass && !className.trim()) {
+      setError("Class name is required for this role.");
+      return;
+    }
+    if (needsPosition && !position.trim()) {
+      setError("Committee position is required for this role.");
+      return;
+    }
+
     setIsSubmitting(true);
-    setSuccessMsg("");
-    // Simulate API call
-    setTimeout(() => {
-      setSuccessMsg(`Invitation successfully sent to ${formData.email}`);
-      setFormData({ fullName: "", email: "", role: "Staff" });
+    try {
+      const result = await inviteUser({
+        email,
+        fullNames,
+        role,
+        ...(needsClass    ? { className }           : {}),
+        ...(needsPosition ? { committeePosition: position } : {}),
+      });
+      setSuccess({ email: result.email, tempPassword: result.temporaryPassword });
+      setFullNames(""); setEmail(""); setClassName(""); setPosition("");
+      setRole("TEACHER");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to send invitation.");
+    } finally {
       setIsSubmitting(false);
-    }, 1500);
-  };
+    }
+  }
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-5xl animate-fade-in">
       <div className="mb-6">
         <h1 className="text-2xl font-black tracking-tight text-[var(--accent)]">Send Invitation</h1>
-        <p className="mt-1 text-[10px] font-bold text-[var(--muted)] uppercase tracking-[0.2em] opacity-70">
+        <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted)] opacity-70">
           Admin Member Management
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        {/* Main Form Area */}
+      <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-12">
+        {/* ── Main Form ── */}
         <div className="lg:col-span-7 flex flex-col">
-          <div className="flex-1 rounded-[1.5rem] bg-white p-8 border border-[var(--border)] shadow-xl shadow-[var(--accent)]/5">
-            {successMsg && (
-              <div className="mb-6 rounded-xl bg-[var(--accent)] p-3 flex items-center gap-3 animate-fade-in">
-                <CheckCircle2 size={16} className="text-white" />
-                <p className="text-[12px] font-bold text-white">{successMsg}</p>
+          <div className="flex-1 rounded-2xl border border-[var(--border)] bg-white p-8 shadow-xl shadow-[var(--accent)]/5">
+
+            {/* Success banner */}
+            {success && (
+              <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 animate-fade-in">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+                  <p className="text-sm font-black text-emerald-700">Invitation sent to {success.email}</p>
+                </div>
+                <p className="text-xs font-bold text-emerald-600">
+                  Temporary password:{" "}
+                  <code className="rounded bg-emerald-100 px-1.5 py-0.5 font-mono font-black tracking-wider">
+                    {success.tempPassword}
+                  </code>
+                  {" "}— share this securely with the new member.
+                </p>
+              </div>
+            )}
+
+            {/* Error banner */}
+            {error && (
+              <div className="mb-6 flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
+                <AlertCircle size={15} className="shrink-0 text-red-500" />
+                <p className="text-sm font-bold text-red-600">{error}</p>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Full Name */}
               <div className="space-y-1.5">
-                <label className="ml-1 text-[10px] font-black uppercase tracking-widest text-[var(--accent)] opacity-60">Full Name</label>
-                <div className="relative group">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--muted)] group-focus-within:text-[var(--accent)] transition-colors" size={16} />
+                <label className="ml-1 block text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">
+                  Full Name <span className="text-red-500">*</span>
+                </label>
+                <div className="group relative">
+                  <User className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--muted)] transition group-focus-within:text-[var(--accent)]" size={16} />
                   <input
                     type="text"
                     placeholder="Enter full name"
                     required
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] py-3 pl-10 pr-4 text-[13px] font-bold transition-all focus:border-[var(--accent)] focus:bg-white focus:ring-4 focus:ring-[var(--accent)]/5 outline-none placeholder:text-[var(--muted)]/40"
-                    value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                    value={fullNames}
+                    onChange={(e) => setFullNames(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] py-3 pl-10 pr-4 text-sm font-bold outline-none transition focus:border-[var(--accent)] focus:bg-white focus:ring-4 focus:ring-[var(--accent)]/5 placeholder:text-[var(--muted)]/40"
                   />
                 </div>
               </div>
 
+              {/* Email */}
               <div className="space-y-1.5">
-                <label className="ml-1 text-[10px] font-black uppercase tracking-widest text-[var(--accent)] opacity-60">Email Address</label>
-                <div className="relative group">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--muted)] group-focus-within:text-[var(--accent)] transition-colors" size={16} />
+                <label className="ml-1 block text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">
+                  Email Address <span className="text-red-500">*</span>
+                </label>
+                <div className="group relative">
+                  <Mail className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--muted)] transition group-focus-within:text-[var(--accent)]" size={16} />
                   <input
                     type="email"
-                    placeholder="name@company.com"
+                    placeholder="name@school.ac"
                     required
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] py-3 pl-10 pr-4 text-[13px] font-bold transition-all focus:border-[var(--accent)] focus:bg-white focus:ring-4 focus:ring-[var(--accent)]/5 outline-none placeholder:text-[var(--muted)]/40"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] py-3 pl-10 pr-4 text-sm font-bold outline-none transition focus:border-[var(--accent)] focus:bg-white focus:ring-4 focus:ring-[var(--accent)]/5 placeholder:text-[var(--muted)]/40"
                   />
                 </div>
               </div>
 
+              {/* Role */}
               <div className="space-y-1.5">
-                <label className="ml-1 text-[10px] font-black uppercase tracking-widest text-[var(--accent)] opacity-60">Assigned Role</label>
-                <div className="relative group">
-                  <ShieldCheck className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--muted)] group-focus-within:text-[var(--accent)] transition-colors" size={16} />
+                <label className="ml-1 block text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">
+                  Assigned Role <span className="text-red-500">*</span>
+                </label>
+                <div className="group relative">
+                  <ShieldCheck className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--muted)] transition group-focus-within:text-[var(--accent)]" size={16} />
                   <select
-                    className="w-full appearance-none rounded-xl border border-[var(--border)] bg-[var(--background)] py-3 pl-10 pr-10 text-[13px] font-bold transition-all focus:border-[var(--accent)] focus:bg-white focus:ring-4 focus:ring-[var(--accent)]/5 outline-none cursor-pointer"
-                    value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                    value={role}
+                    onChange={(e) => setRole(e.target.value as UserRole)}
+                    className="w-full appearance-none rounded-xl border border-[var(--border)] bg-[var(--background)] py-3 pl-10 pr-10 text-sm font-bold outline-none transition focus:border-[var(--accent)] focus:bg-white focus:ring-4 focus:ring-[var(--accent)]/5 cursor-pointer"
                   >
-                    <option value="Admin">System Administrator</option>
-                    <option value="Moderator">Content Moderator</option>
-                    <option value="Staff">Operations Staff</option>
-                    <option value="Reporter">Field Reporter</option>
+                    {ROLE_OPTIONS.map((r) => (
+                      <option key={r.value} value={r.value}>{r.label}</option>
+                    ))}
                   </select>
-                  <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[var(--accent)]">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                  </div>
+                  <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--muted)]" size={14} />
                 </div>
+                {selectedRoleInfo && (
+                  <p className="ml-1 text-[11px] font-bold text-[var(--muted)]">{selectedRoleInfo.description}</p>
+                )}
               </div>
 
+              {/* Class Name (conditional) */}
+              {needsClass && (
+                <div className="space-y-1.5">
+                  <label className="ml-1 block text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">
+                    Class Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. S6 PCM A"
+                    value={className}
+                    onChange={(e) => setClassName(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm font-bold outline-none transition focus:border-[var(--accent)] focus:bg-white focus:ring-4 focus:ring-[var(--accent)]/5 placeholder:text-[var(--muted)]/40"
+                  />
+                </div>
+              )}
+
+              {/* Committee Position (conditional) */}
+              {needsPosition && (
+                <div className="space-y-1.5">
+                  <label className="ml-1 block text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">
+                    Committee Position <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Vice President"
+                    value={position}
+                    onChange={(e) => setPosition(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm font-bold outline-none transition focus:border-[var(--accent)] focus:bg-white focus:ring-4 focus:ring-[var(--accent)]/5 placeholder:text-[var(--muted)]/40"
+                  />
+                </div>
+              )}
+
+              {/* Submit */}
               <div className="pt-2">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-[var(--accent)] py-4 text-[11px] font-black uppercase tracking-widest text-white transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 shadow-lg shadow-[var(--accent)]/20"
+                  className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-4 text-[11px] font-black uppercase tracking-widest text-white shadow-lg shadow-[var(--accent)]/20 transition hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
                 >
                   {isSubmitting ? (
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                    <><Loader2 size={15} className="animate-spin" /> Sending…</>
                   ) : (
-                    <>
-                      <span>Send Official Invite</span>
-                      <Send size={14} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
-                    </>
+                    <><span>Send Official Invite</span><Send size={14} className="transition group-hover:translate-x-1" /></>
                   )}
                 </button>
               </div>
@@ -115,40 +221,37 @@ export default function SendInvitePage() {
           </div>
         </div>
 
-        {/* Information Sidebar */}
-        <div className="lg:col-span-5 flex flex-col gap-6 h-full">
-          <div className="flex-1 rounded-[1.5rem] bg-[var(--accent)] p-6 text-white shadow-xl shadow-[var(--accent)]/10">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white">
+        {/* ── Sidebar ── */}
+        <div className="lg:col-span-5 flex flex-col gap-6">
+          {/* Role guide */}
+          <div className="flex-1 rounded-2xl bg-[var(--accent)] p-6 text-white shadow-xl shadow-[var(--accent)]/10">
+            <div className="mb-6 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10">
                 <Info size={18} />
               </div>
               <h3 className="text-lg font-black tracking-tight">Role Guide</h3>
             </div>
-            
-            <div className="space-y-4">
-              <div className="flex gap-3">
-                <div className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-white/40" />
-                <p className="text-[12px] leading-relaxed"><strong className="block text-[13px] mb-0.5">Administrator</strong> Full system control and user management.</p>
-              </div>
-              <div className="flex gap-3">
-                <div className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-white/40" />
-                <p className="text-[12px] leading-relaxed"><strong className="block text-[13px] mb-0.5">Moderator</strong> Handles triage and task assignments.</p>
-              </div>
-              <div className="flex gap-3">
-                <div className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-white/40" />
-                <p className="text-[12px] leading-relaxed"><strong className="block text-[13px] mb-0.5">Staff</strong> Internal members for executing tasks.</p>
-              </div>
-              <div className="flex gap-3">
-                <div className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-white/40" />
-                <p className="text-[12px] leading-relaxed"><strong className="block text-[13px] mb-0.5">Reporter</strong> Restrict to submitting field issues.</p>
-              </div>
+            <div className="space-y-3.5">
+              {ROLE_OPTIONS.map((r) => (
+                <div
+                  key={r.value}
+                  onClick={() => setRole(r.value)}
+                  className={`cursor-pointer rounded-xl border p-3 transition ${role === r.value ? "border-white/40 bg-white/10" : "border-white/10 hover:border-white/20 hover:bg-white/5"}`}
+                >
+                  <p className="text-[13px] font-black">{r.label}</p>
+                  <p className="mt-0.5 text-[11px] opacity-70">{r.description}</p>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div className="rounded-[1.5rem] border border-[var(--border)] bg-white p-6 shadow-sm">
-            <h3 className="text-sm font-black text-[var(--accent)] mb-2">Security Protocol</h3>
-            <p className="text-[11px] font-bold text-[var(--muted)] leading-relaxed">
-              Invitations expire in <span className="text-[var(--accent)]">24 hours</span>. Links are single-use only.
+          {/* Security note */}
+          <div className="rounded-2xl border border-[var(--border)] bg-white p-5 shadow-sm">
+            <h3 className="mb-2 text-sm font-black text-[var(--accent)]">Security Protocol</h3>
+            <p className="text-[11px] font-bold leading-relaxed text-[var(--muted)]">
+              A temporary password is generated for each invite. The new member must
+              change it on first login. Share credentials{" "}
+              <span className="text-[var(--accent)]">securely and privately</span>.
             </p>
           </div>
         </div>

@@ -1,416 +1,540 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import Link from "next/link";
-import { 
-  CheckCircle, 
-  Clock, 
-  AlertTriangle, 
-  Activity, 
-  TrendingUp, 
-  ArrowUpRight, 
-  Zap, 
-  ListChecks,
-  ShieldAlert,
-  CalendarDays,
-  Megaphone,
-  MessageCircle,
-  RefreshCw
+import {
+  Activity, TrendingUp, ArrowUpRight, Clock,
+  ListChecks, ShieldAlert, Megaphone, MessageCircle,
+  RefreshCw, Loader2, X, CheckCircle2, Send,
 } from "lucide-react";
 import ActivityCalendar from "./components/ActivityCalendar";
+import { useDashboard } from "@/app/lib/hooks";
+import { useNotificationContext } from "@/app/lib/NotificationContext";
+import { commentOnIssue, resolveIssue, fetchBroadcastFeed } from "@/app/lib/api";
+import type {
+  IssueResponseDto, IssuePriority, IssueStatus, NotificationResponseDto,
+} from "@/app/lib/types";
 
-const staticBroadcasts = [
-  { id: "b1", title: "Water maintenance in Block B this Saturday", type: "Announcement", date: "Today", priority: "Low", comments: [] },
-  { id: "b2", title: "General system update scheduled for 10 PM", type: "System", date: "Yesterday", priority: "Medium", comments: [{ author: 'User 1', text: 'Will the power also be affected?', timestamp: '2h ago' }] },
-  { id: "b3", title: "New security protocols in effect for labs", type: "Security", date: "2 days ago", priority: "High", comments: [] },
-];
+// ─── Priority / Status helpers ────────────────────────────────────────────────
 
-const staticIssues = [
-  { id: "1", trackingId: "ISS-2026-0001", title: "Dorm corridor light not working", category: "Maintenance", priority: "High", status: "In Progress", reporter: "Monitor A", date: "Apr 18" },
-  { id: "2", trackingId: "ISS-2026-0002", title: "Lab internet unstable", category: "ICT", priority: "High", status: "Pending", reporter: "Monitor B", date: "Apr 19" },
-  { id: "3", trackingId: "ISS-2026-0003", title: "Need extra revision slot", category: "Academic", priority: "Medium", status: "Resolved", reporter: "Leader C", date: "Apr 15" },
-];
+const PRIORITY_BADGE: Record<IssuePriority, string> = {
+  LOW:      "bg-slate-100 text-slate-600",
+  MEDIUM:   "bg-amber-100 text-amber-700",
+  HIGH:     "bg-orange-100 text-orange-700",
+  CRITICAL: "bg-red-100 text-red-700",
+};
+
+const STATUS_BADGE: Record<IssueStatus, { cls: string; label: string }> = {
+  PENDING:     { cls: "bg-amber-100 text-amber-700",   label: "Pending"     },
+  IN_PROGRESS: { cls: "bg-blue-100 text-blue-700",     label: "In Progress" },
+  RESOLVED:    { cls: "bg-emerald-100 text-emerald-700",label: "Resolved"   },
+};
+
+// ─── Manage Issue Modal ───────────────────────────────────────────────────────
+
+interface ManageModalProps {
+  issue: IssueResponseDto;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function ManageModal({ issue, onClose, onSuccess }: ManageModalProps) {
+  const [tab, setTab]         = useState<"comment" | "resolve">("comment");
+  const [content, setContent] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState<string | null>(null);
+
+  const handleSubmit = useCallback(async () => {
+    if (!content.trim()) return;
+    setLoading(true);
+    setError(null);
+    try {
+      if (tab === "comment") {
+        await commentOnIssue(issue.id, { content });
+      } else {
+        await resolveIssue(issue.id, { resolutionMessage: content });
+      }
+      onSuccess();
+      onClose();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Action failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [tab, content, issue.id, onSuccess, onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl">
+        {/* Header */}
+        <div className="flex items-start justify-between border-b border-[var(--border)] p-6">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">
+              Issue #{issue.id} &bull; {issue.category}
+            </p>
+            <h3 className="mt-1 text-lg font-black text-[var(--foreground)] leading-snug">
+              {issue.title}
+            </h3>
+          </div>
+          <button onClick={onClose} className="ml-4 shrink-0 rounded-full p-2 text-[var(--muted)] hover:bg-[var(--background)]">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Issue info bar */}
+        <div className="flex items-center gap-3 border-b border-[var(--border)] px-6 py-3">
+          <span className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${PRIORITY_BADGE[issue.priority]}`}>
+            {issue.priority}
+          </span>
+          <span className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${STATUS_BADGE[issue.status].cls}`}>
+            {STATUS_BADGE[issue.status].label}
+          </span>
+          <span className="ml-auto text-[10px] font-bold text-[var(--muted)]">
+            By {issue.createdByEmail}
+          </span>
+        </div>
+
+        {/* Description */}
+        <div className="px-6 pt-4 pb-2">
+          <p className="text-sm text-[var(--muted)] leading-relaxed italic">
+            &ldquo;{issue.description || issue.title}&rdquo;
+          </p>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-2 px-6 pt-3">
+          <button
+            onClick={() => setTab("comment")}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${tab === "comment" ? "bg-[var(--accent)] text-white" : "text-[var(--muted)] hover:bg-[var(--background)]"}`}
+          >
+            <MessageCircle size={13} /> Add Comment
+          </button>
+          {issue.status !== "RESOLVED" && (
+            <button
+              onClick={() => setTab("resolve")}
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${tab === "resolve" ? "bg-emerald-600 text-white" : "text-[var(--muted)] hover:bg-[var(--background)]"}`}
+            >
+              <CheckCircle2 size={13} /> Mark Resolved
+            </button>
+          )}
+        </div>
+
+        {/* Text area */}
+        <div className="px-6 pb-2 pt-3">
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            rows={4}
+            placeholder={tab === "comment" ? "Write your comment or action plan..." : "Describe how this issue was resolved..."}
+            className="w-full rounded-xl border border-[var(--border)] p-3 text-sm font-medium outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[#21130D]/10"
+          />
+          {error && <p className="mt-1 text-xs font-bold text-red-500">{error}</p>}
+        </div>
+
+        {/* Footer */}
+        <div className="flex gap-3 border-t border-[var(--border)] p-6 pt-4">
+          <button
+            onClick={handleSubmit}
+            disabled={loading || !content.trim()}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition disabled:opacity-50 ${tab === "resolve" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-[var(--accent)] hover:opacity-90"}`}
+          >
+            {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={14} />}
+            {loading ? "Submitting…" : tab === "comment" ? "Post Comment" : "Mark as Resolved"}
+          </button>
+          <button onClick={onClose} className="rounded-xl border border-[var(--border)] px-5 py-3 text-sm font-bold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Stat Widget ──────────────────────────────────────────────────────────────
+
+interface StatWidgetProps {
+  label: string;
+  value: number | string;
+  icon: React.ReactNode;
+  color: "emerald" | "amber" | "blue" | "indigo" | "rose";
+  isLoading: boolean;
+}
+
+const COLOR_MAP: Record<StatWidgetProps["color"], string> = {
+  emerald: "bg-emerald-50 text-emerald-600",
+  amber:   "bg-amber-50  text-amber-600",
+  indigo:  "bg-indigo-50 text-indigo-600",
+  blue:    "bg-[#21130D]/10 text-[#21130D]",
+  rose:    "bg-rose-50   text-rose-600",
+};
+
+function StatWidget({ label, value, icon, color, isLoading }: StatWidgetProps) {
+  return (
+    <article className="flex flex-1 items-center justify-between rounded-xl border border-[var(--border)] bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+      <div className="flex gap-3">
+        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${COLOR_MAP[color]}`}>
+          {icon}
+        </div>
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-tight text-[var(--muted)]">{label}</p>
+          {isLoading
+            ? <div className="mt-1 h-5 w-10 animate-pulse rounded bg-[var(--border)]" />
+            : <p className="mt-0.5 text-lg font-black text-[var(--foreground)]">{value}</p>
+          }
+        </div>
+      </div>
+    </article>
+  );
+}
+
+// ─── Broadcast Card ───────────────────────────────────────────────────────────
+
+function BroadcastCard({ issue, onSelect }: { issue: IssueResponseDto; onSelect: (i: IssueResponseDto) => void }) {
+  return (
+    <div className="group relative rounded-xl border border-dashed border-[var(--border)] p-3 transition-all hover:border-purple-200 hover:bg-purple-50/50">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <span className={`inline-block rounded px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest ${PRIORITY_BADGE[issue.priority]}`}>
+            {issue.priority}
+          </span>
+          <h4 className="mt-1.5 line-clamp-2 text-xs font-bold text-[var(--foreground)] leading-snug">{issue.title}</h4>
+          <p className="mt-1 text-[9px] font-medium uppercase tracking-tighter text-[var(--muted)]">
+            {new Date(issue.createdAt).toLocaleDateString()}
+          </p>
+        </div>
+        <button
+          onClick={() => onSelect(issue)}
+          className="flex shrink-0 flex-col items-center gap-1 rounded-lg p-1.5 text-[var(--muted)] transition hover:bg-white hover:text-[var(--accent)]"
+        >
+          <MessageCircle size={14} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Notification Feed Item ───────────────────────────────────────────────────
+
+function NotifItem({ notif, onRead }: { notif: NotificationResponseDto; onRead: (id: number) => void }) {
+  return (
+    <div
+      onClick={() => !notif.isRead && onRead(notif.id)}
+      className={`cursor-pointer rounded-xl p-3 text-xs transition-all hover:bg-[var(--background)] ${notif.isRead ? "opacity-60" : "border border-[var(--accent)]/20 bg-[var(--accent)]/5"}`}
+    >
+      <p className={`font-bold ${notif.isRead ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}>
+        {notif.message}
+      </p>
+      <p className="mt-1 text-[9px] font-medium uppercase tracking-wider text-[var(--muted)]">
+        {new Date(notif.createdAt).toLocaleString()}
+      </p>
+    </div>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function AdminDashboardPage() {
-  const [issues, setIssues] = useState<any[]>([]);
-  const [broadcasts, setBroadcasts] = useState<any[]>([]);
-  const [selectedIssue, setSelectedIssue] = useState<any | null>(null);
-  const [selectedBroadcast, setSelectedBroadcast] = useState<any | null>(null);
-  const [response, setResponse] = useState("");
-  const [broadcastComment, setBroadcastComment] = useState("");
-  const [isUpdating, setIsUpdating] = useState(false);
+  const { data, isLoading, error, refetch } = useDashboard();
+  const {
+    notifications, unreadCount, isLoading: notifsLoading, markRead, refetch: refetchNotifs,
+  } = useNotificationContext(); // no auto-poll on dashboard; layout already polls
 
-  useEffect(() => {
-    setIssues(staticIssues);
-    setBroadcasts(staticBroadcasts);
+  // Broadcast issues state
+  const [broadcasts, setBroadcasts]             = useState<IssueResponseDto[]>([]);
+  const [broadcastLoading, setBroadcastLoading] = useState(true);
+  const [broadcastError, setBroadcastError]     = useState<string | null>(null);
+
+  // Modals
+  const [selectedIssue,     setSelectedIssue]     = useState<IssueResponseDto | null>(null);
+  const [selectedBroadcast, setSelectedBroadcast] = useState<IssueResponseDto | null>(null);
+
+  // Fetch broadcasts once on mount
+  React.useEffect(() => {
+    fetchBroadcastFeed()
+      .then(setBroadcasts)
+      .catch((e) => setBroadcastError(e instanceof Error ? e.message : "Failed to load broadcasts"))
+      .finally(() => setBroadcastLoading(false));
   }, []);
 
-  const handleManage = (issue: any) => {
-    setSelectedIssue(issue);
-    setResponse("");
-  };
+  // Derived stats from DashboardResponse field names
+  const stats = useMemo(() => ({
+    resolved:   data?.totalResolved   ?? 0,
+    inProgress: data?.totalInProgress ?? 0,
+    pending:    data?.totalPending    ?? 0,
+    received:   data?.totalReceived   ?? 0,
+    submitted:  data?.totalSubmitted  ?? 0,
+  }), [data]);
+
+  // Most recent received issues for the urgent table
+  const recentReceived = useMemo(() => (data?.recentIssues ?? []).slice(0, 5), [data]);
 
   const handleTakeAction = () => {
-    const urgentIssue = issues.find(i => i.priority === 'High' && i.status !== 'Resolved') || issues[0];
-    if (urgentIssue) {
-      setSelectedIssue(urgentIssue);
-      setResponse("");
-    }
+    const firstUrgent =
+      recentReceived.find((i) => (i.priority === "HIGH" || i.priority === "CRITICAL") && i.status !== "RESOLVED") ??
+      recentReceived[0];
+    if (firstUrgent) setSelectedIssue(firstUrgent);
   };
 
-  const submitResponse = () => {
-    if (!selectedIssue || !response.trim()) return;
-    
-    setIsUpdating(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIssues(prev => prev.map(issue => 
-        issue.id === selectedIssue.id 
-          ? { ...issue, status: 'In Progress', comments: [...(issue.comments || []), { author: 'Admin', text: response, timestamp: 'Just now' }] }
-          : issue
-      ));
-      setSelectedIssue(null);
-      setIsUpdating(false);
-    }, 1000);
-  };
-
-  const submitBroadcastComment = () => {
-    if (!selectedBroadcast || !broadcastComment.trim()) return;
-    
-    setIsUpdating(true);
-    // Simulate API call
-    setTimeout(() => {
-      setBroadcasts(prev => prev.map(bc => 
-        bc.id === selectedBroadcast.id 
-          ? { ...bc, comments: [...(bc.comments || []), { author: 'Admin', text: broadcastComment, timestamp: 'Just now' }] }
-          : bc
-      ));
-      // Update the local selectedBroadcast to show the new comment immediately in the modal
-      setSelectedBroadcast((prev: any) => ({
-        ...prev,
-        comments: [...(prev.comments || []), { author: 'Admin', text: broadcastComment, timestamp: 'Just now' }]
-      }));
-      setBroadcastComment("");
-      setIsUpdating(false);
-    }, 800);
-  };
+  if (isLoading && !data) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-[var(--accent)]" />
+          <p className="text-sm font-bold uppercase tracking-widest text-[var(--muted)]">Gathering intelligence…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative animate-fade-in space-y-8">
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        {/* Row 1: Urgent Reports, Broadcast Feed, and Stats */}
-        
-        {/* 1. Urgent Reports Card */}
-        <section className="rounded-xl border border-[var(--border)] bg-white p-6 shadow-sm transition hover:shadow-md flex flex-col h-full">
-          <div className="mb-6 flex items-center justify-between">
+
+      {/* Error banner */}
+      {error && (
+        <div className="flex items-center justify-between rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-600">
+          <p>Failed to load dashboard data.</p>
+          <button onClick={refetch} className="flex items-center gap-2 rounded-lg bg-white px-3 py-1 shadow-sm transition hover:bg-red-50">
+            <RefreshCw size={13} /> Retry
+          </button>
+        </div>
+      )}
+
+      {/* ── Row 1: Recent Issues | Live Notifications | Stat Column ── */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+        {/* 1 — Recent Received Issues */}
+        <section className="flex flex-col rounded-xl border border-[var(--border)] bg-white p-6 shadow-sm transition hover:shadow-md">
+          <div className="mb-5 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-500">
                 <ShieldAlert size={20} />
               </div>
               <div>
-                <h3 className="text-xl font-black text-[var(--foreground)] leading-none">Urgent Reports</h3>
-                <p className="mt-1 text-[10px] font-bold text-[var(--muted)] uppercase tracking-widest text-nowrap">High priority pending</p>
+                <h3 className="text-lg font-black leading-none text-[var(--foreground)]">Recent Reports</h3>
+                <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">Issues sent to you</p>
               </div>
             </div>
-            <Link href="/admin/manage-issues" className="transition-all shrink-0">
-              <button className="flex items-center gap-1 text-xs font-bold text-[var(--accent)] hover:scale-105 hover:cursor-pointer">
-                View All <ArrowUpRight size={14} />
+            <div className="flex items-center gap-2">
+              <button onClick={refetch} disabled={isLoading} className="flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] transition hover:text-[var(--accent)] disabled:opacity-40">
+                <RefreshCw size={12} className={isLoading ? "animate-spin" : ""} />
               </button>
-            </Link>
+              <Link href="/admin/manage-issues">
+                <button className="flex items-center gap-1 text-xs font-bold text-[var(--accent)] transition hover:scale-105">
+                  View All <ArrowUpRight size={13} />
+                </button>
+              </Link>
+            </div>
           </div>
-          <div className="overflow-x-auto flex-1">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-[var(--border)] text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">
-                  <th className="pb-4">Issue</th>
-                  <th className="pb-4 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--border)]">
-                {issues.map((issue) => (
-                  <tr key={issue.id} className="group transition-colors hover:bg-[var(--background)]">
-                    <td className="py-4 font-bold text-[var(--foreground)]">
-                      <p className="text-xs line-clamp-1">{issue.title}</p>
-                      <p className="text-[9px] text-[var(--muted)] uppercase tracking-tighter">{issue.date} • {issue.reporter}</p>
-                    </td>
-                    <td className="py-4 text-right">
-                      <button 
-                        onClick={() => handleManage(issue)}
-                        className="rounded-lg border border-[var(--border)] px-3 py-1 text-[10px] font-bold text-[var(--muted)] transition-all hover:border-[var(--accent)] hover:text-[var(--accent)] hover:bg-white"
-                      >
-                        Manage
-                      </button>
-                    </td>
+
+          {isLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-3 rounded-lg p-2">
+                  <div className="h-4 flex-1 animate-pulse rounded bg-[var(--border)]" />
+                  <div className="h-6 w-16 animate-pulse rounded-lg bg-[var(--border)]" />
+                </div>
+              ))}
+            </div>
+          ) : recentReceived.length === 0 ? (
+            <p className="py-10 text-center text-xs font-bold uppercase text-[var(--muted)]">No issues received yet</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-[var(--border)] text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">
+                    <th className="pb-3">Issue</th>
+                    <th className="pb-3 text-right">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-[var(--border)]">
+                  {recentReceived.map((issue) => (
+                    <tr key={issue.id} className="group transition-colors hover:bg-[var(--background)]">
+                      <td className="py-3">
+                        <p className="line-clamp-1 text-xs font-bold text-[var(--foreground)]">{issue.title}</p>
+                        <div className="mt-0.5 flex items-center gap-2">
+                          <span className={`rounded px-1.5 py-0.5 text-[9px] font-black uppercase ${PRIORITY_BADGE[issue.priority]}`}>
+                            {issue.priority}
+                          </span>
+                          <span className={`rounded px-1.5 py-0.5 text-[9px] font-black uppercase ${STATUS_BADGE[issue.status].cls}`}>
+                            {STATUS_BADGE[issue.status].label}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-3 text-right">
+                        <button
+                          onClick={() => setSelectedIssue(issue)}
+                          className="rounded-lg border border-[var(--border)] px-3 py-1 text-[10px] font-bold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                        >
+                          Manage
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
 
-        {/* 2. Broadcast Portal Card */}
-        <section className="rounded-xl border border-[var(--border)] bg-white p-6 shadow-sm transition hover:shadow-md flex flex-col h-full">
-          <div className="mb-6 flex items-center justify-between">
+        {/* 2 — Live Broadcast Feed */}
+        <section className="flex flex-col rounded-xl border border-[var(--border)] bg-white p-6 shadow-sm transition hover:shadow-md">
+          <div className="mb-5 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-500">
                 <Megaphone size={20} />
               </div>
               <div>
-                <h3 className="text-xl font-black text-[var(--foreground)] leading-none">Broadcast Feed</h3>
-                <p className="mt-1 text-[10px] font-bold text-[var(--muted)] uppercase tracking-widest">Public announcements</p>
+                <h3 className="text-lg font-black leading-none text-[var(--foreground)]">Broadcast Feed</h3>
+                <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">Public issues &amp; announcements</p>
               </div>
             </div>
-            <button className="flex items-center gap-1 text-xs font-bold text-[var(--accent)] hover:scale-105 hover:cursor-pointer transition-all shrink-0">
-               Post <ArrowUpRight size={14} />
-            </button>
+            <Link href="/student/dashboard/public">
+              <button className="flex items-center gap-1 text-xs font-bold text-[var(--accent)] transition hover:scale-105">
+                View All <ArrowUpRight size={13} />
+              </button>
+            </Link>
           </div>
-          <div className="flex-1 space-y-4">
-            {broadcasts.map((bc) => (
-              <div key={bc.id} className="group relative rounded-xl border border-dashed border-[var(--border)] p-3 transition-all hover:bg-purple-50/50 hover:border-purple-200">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <span className={`text-[8px] font-black uppercase tracking-[0.2em] px-1.5 py-0.5 rounded ${
-                      bc.priority === 'High' ? 'bg-red-100 text-red-600' : 
-                      bc.priority === 'Medium' ? 'bg-amber-100 text-amber-600' : 'bg-[#21130D]/10 text-[#21130D]'
-                    }`}>
-                      {bc.type}
-                    </span>
-                    <h4 className="mt-1.5 text-xs font-bold text-[var(--foreground)] leading-snug line-clamp-2">{bc.title}</h4>
-                    <p className="mt-1 text-[9px] text-[var(--muted)] font-medium uppercase tracking-tighter">{bc.date}</p>
-                  </div>
-                  <button 
-                    onClick={() => { setSelectedBroadcast(bc); setBroadcastComment(""); }}
-                    className="flex flex-col items-center gap-1 rounded-lg p-1.5 transition-all hover:bg-white text-[var(--muted)] hover:text-[var(--accent)]"
-                  >
-                    <MessageCircle size={14} />
-                    <span className="text-[9px] font-black">{bc.comments?.length || 0}</span>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+
+          {broadcastLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-16 animate-pulse rounded-xl bg-[var(--border)]" />
+              ))}
+            </div>
+          ) : broadcastError ? (
+            <p className="py-10 text-center text-xs font-bold text-red-500">{broadcastError}</p>
+          ) : broadcasts.length === 0 ? (
+            <p className="py-10 text-center text-xs font-bold uppercase text-[var(--muted)]">No broadcast issues</p>
+          ) : (
+            <div className="flex-1 space-y-3 overflow-y-auto">
+              {broadcasts.slice(0, 4).map((bc) => (
+                <BroadcastCard key={bc.id} issue={bc} onSelect={setSelectedBroadcast} />
+              ))}
+            </div>
+          )}
         </section>
 
-        {/* 3. Stat Widgets Column */}
-        <div className="flex flex-col gap-3 h-full justify-between">
-          <StatWidget label="Resolved Issues" value="124" trend="+12%" icon={<ListChecks size={20} />} color="emerald" />
-          <StatWidget label="In Progress" value="18" trend="+5" icon={<RefreshCw size={20} />} color="blue" />
-          <StatWidget label="Pending Actions" value="12" trend="-2" icon={<Clock size={20} />} color="amber" />
-          <StatWidget label="Avg Resolution" value="2.4d" trend="-0.5" icon={<Zap size={20} />} color="indigo" />
+        {/* 3 — Stat Widgets Column */}
+        <div className="flex flex-col gap-3">
+          <StatWidget label="Resolved Issues"  value={stats.resolved}   icon={<CheckCircle2 size={20} />} color="emerald" isLoading={isLoading} />
+          <StatWidget label="In Progress"       value={stats.inProgress} icon={<RefreshCw    size={20} />} color="blue"    isLoading={isLoading} />
+          <StatWidget label="Pending"           value={stats.pending}    icon={<Clock        size={20} />} color="amber"   isLoading={isLoading} />
+          <StatWidget label="Total Received"    value={stats.received}   icon={<Activity     size={20} />} color="indigo"  isLoading={isLoading} />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Row 2: System Activity and Action Card */}
+      {/* ── Row 2: Activity Calendar | Notifications Feed | Action Card ── */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 
-        {/* 4. System Activity Calendar */}
-        <section className="lg:col-span-2 flex flex-col rounded-xl border border-[var(--border)] bg-white p-6 shadow-sm min-h-[450px]">
-          <div className="mb-8 flex items-center justify-between">
+        {/* 4 — System Activity Calendar */}
+        <section className="lg:col-span-2 flex min-h-[400px] flex-col rounded-xl border border-[var(--border)] bg-white p-6 shadow-sm">
+          <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#21130D]/10 text-[#21130D]">
                 <Activity size={20} />
               </div>
               <div>
-                <h3 className="text-xl font-black text-[var(--foreground)] leading-none">System Activity</h3>
-                <p className="mt-1 text-[10px] font-bold text-[var(--muted)] uppercase tracking-widest">Annual Resolution Tracker</p>
+                <h3 className="text-lg font-black leading-none text-[var(--foreground)]">System Activity</h3>
+                <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">Annual resolution tracker</p>
               </div>
             </div>
             <div className="flex gap-4">
-              <div className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--muted)] uppercase">
-                <span className="h-2 w-2 rounded-full bg-emerald-500"></span> Resolved
-              </div>
-              <div className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--muted)] uppercase">
-                <span className="h-2 w-2 rounded-full bg-blue-400"></span> In Progress
-              </div>
-              <div className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--muted)] uppercase">
-                <span className="h-2 w-2 rounded-full bg-red-400"></span> Pending
-              </div>
+              {[["emerald-500","Resolved"],["blue-400","In Progress"],["red-400","Pending"]].map(([col, label]) => (
+                <div key={label} className="flex items-center gap-1.5 text-[10px] font-bold uppercase text-[var(--muted)]">
+                  <span className={`h-2 w-2 rounded-full bg-${col}`} />
+                  {label}
+                </div>
+              ))}
             </div>
           </div>
-          
           <div className="flex-1">
             <ActivityCalendar />
           </div>
         </section>
 
-        {/* 5. Action Card */}
-        <div className="relative flex flex-col justify-center overflow-hidden rounded-xl bg-[var(--accent)] p-6 text-white shadow-xl h-full min-h-[300px]">
-           <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-2xl"></div>
-           <div className="absolute -left-8 -bottom-8 h-32 w-32 rounded-full bg-white/5 blur-2xl"></div>
-           
-          <div className="relative z-10">
-            <div className="mb-4 inline-flex rounded-xl bg-white/10 p-3 backdrop-blur-md">
-              <TrendingUp size={22} className="text-white" />
-            </div>
-            <p className="text-xs font-bold uppercase tracking-widest opacity-70">Upcoming Action</p>
-            <h4 className="mt-2 text-2xl font-black leading-tight">Clear Maintenance Queue</h4>
-            <p className="mt-4 text-xs font-medium opacity-80 leading-relaxed"> You have 5 high-priority maintenance issues requiring immediate assignment to staff.</p>
-            <button 
-              onClick={handleTakeAction}
-              className="mt-6 flex w-full items-center justify-center rounded-xl bg-white py-3.5 text-sm font-black text-[var(--accent)] transition-all hover:scale-[1.02] shadow-xl active:scale-95"
-            >
-              Take Action Now
-            </button>
-          </div>
-        </div>
-      </div>
+        {/* 5 — Live Notifications + Action Card stacked */}
+        <div className="flex flex-col gap-6">
 
-      {/* Response Modal */}
-      {selectedIssue && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs animate-fade-in p-4">
-          <div className="w-full max-w-lg rounded-3xl bg-white p-8 shadow-2xl animate-scale-in">
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">{selectedIssue.trackingId}</p>
-                <h3 className="text-xl font-black text-[var(--foreground)] mt-1">{selectedIssue.title}</h3>
+          {/* Live Notifications */}
+          <section className="flex flex-col rounded-xl border border-[var(--border)] bg-white p-5 shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-black text-[var(--foreground)]">Live Alerts</h3>
+                {unreadCount > 0 && (
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black text-white">
+                    {unreadCount}
+                  </span>
+                )}
               </div>
-              <button 
-                onClick={() => setSelectedIssue(null)}
-                className="rounded-full p-2 hover:bg-gray-100 transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-              </button>
+              <Link href="/admin/notifications">
+                <button className="text-[10px] font-bold text-[var(--accent)] hover:underline">View all</button>
+              </Link>
             </div>
 
-            <div className="mb-6 rounded-2xl bg-gray-50 p-4 border border-[var(--border)]">
-              <div className="flex justify-between text-xs font-bold mb-2">
-                <span className="text-[var(--muted)]">Reporter: <span className="text-[var(--foreground)]">{selectedIssue.reporter}</span></span>
-                <span className={`px-2 py-0.5 rounded-md ${selectedIssue.priority === 'High' ? 'bg-red-100 text-red-600' : 'bg-[#21130D]/10 text-[#21130D]'}`}>
-                  {selectedIssue.priority} Priority
-                </span>
+            {notifsLoading ? (
+              <div className="space-y-2">
+                {[1, 2].map((i) => <div key={i} className="h-12 animate-pulse rounded-xl bg-[var(--border)]" />)}
               </div>
-              <p className="text-sm text-[var(--muted)] leading-relaxed italic">
-                "{selectedIssue.title}"
+            ) : notifications.length === 0 ? (
+              <p className="py-6 text-center text-xs font-bold uppercase text-[var(--muted)]">No notifications</p>
+            ) : (
+              <div className="max-h-48 space-y-2 overflow-y-auto">
+                {notifications.slice(0, 5).map((n) => (
+                  <NotifItem key={n.id} notif={n} onRead={markRead} />
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Action Card */}
+          <div className="relative flex flex-col justify-center overflow-hidden rounded-xl bg-[var(--accent)] p-6 text-white shadow-xl">
+            <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+            <div className="absolute -left-8 -bottom-8 h-32 w-32 rounded-full bg-white/5 blur-2xl" />
+            <div className="relative z-10">
+              <div className="mb-3 inline-flex rounded-xl bg-white/10 p-3 backdrop-blur-md">
+                <TrendingUp size={22} />
+              </div>
+              <p className="text-[10px] font-bold uppercase tracking-widest opacity-70">Priority Action</p>
+              <h4 className="mt-2 text-xl font-black leading-tight">
+                {stats.pending > 0 ? `${stats.pending} Pending Issue${stats.pending !== 1 ? "s" : ""}` : "All Clear!"}
+              </h4>
+              <p className="mt-3 text-xs font-medium opacity-80 leading-relaxed">
+                {stats.pending > 0
+                  ? "There are pending issues requiring immediate attention or assignment."
+                  : "No pending issues at the moment. Great work!"}
               </p>
-            </div>
-
-            <div className="space-y-4">
-              <label className="block text-sm font-bold text-[var(--foreground)]">Admin Response</label>
-              <textarea 
-                value={response}
-                onChange={(e) => setResponse(e.target.value)}
-                placeholder="Type your response or action plan here..."
-                className="min-h-[120px] w-full rounded-2xl border border-[var(--border)] p-4 text-sm font-medium outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[#21130D]/20"
-              />
-              
-              <div className="flex gap-3">
-                <button 
-                  onClick={submitResponse}
-                  disabled={isUpdating || !response.trim()}
-                  className="flex-1 rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white transition-all hover:translate-y-[-2px] hover:brightness-125 hover:shadow-xl hover:shadow-black/30 active:scale-95 disabled:opacity-50"
+              {stats.pending > 0 && (
+                <button
+                  onClick={handleTakeAction}
+                  className="mt-5 flex w-full items-center justify-center rounded-xl bg-white py-3 text-sm font-black text-[var(--accent)] shadow-xl transition hover:scale-[1.02] active:scale-95"
                 >
-                  {isUpdating ? 'Updating...' : 'Submit Action'}
+                  Take Action Now
                 </button>
-                <button 
-                  onClick={() => setSelectedIssue(null)}
-                  className="flex-1 rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--muted)] transition-all hover:translate-y-[-2px] hover:border-[var(--accent)]"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Broadcast Comment Modal */}
-      {selectedBroadcast && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs animate-fade-in p-4">
-          <div className="w-full max-w-lg rounded-3xl bg-white p-8 shadow-2xl animate-scale-in">
-            <div className="mb-6 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-500">
-                  <Megaphone size={20} />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">{selectedBroadcast.type} • {selectedBroadcast.date}</p>
-                  <h3 className="text-xl font-black text-[var(--foreground)] mt-1">{selectedBroadcast.title}</h3>
-                </div>
-              </div>
-              <button 
-                onClick={() => setSelectedBroadcast(null)}
-                className="rounded-full p-2 hover:bg-gray-100 transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-              </button>
-            </div>
-
-            <div className="mb-6 max-h-[200px] overflow-y-auto space-y-4 pr-2 custom-scrollbar">
-              {selectedBroadcast.comments?.length > 0 ? (
-                selectedBroadcast.comments.map((c: any, i: number) => (
-                  <div key={i} className="rounded-2xl bg-gray-50 p-4 border border-[var(--border)]">
-                    <div className="flex justify-between text-[10px] font-black mb-1">
-                      <span className="text-[var(--accent)]">{c.author}</span>
-                      <span className="text-[var(--muted)]">{c.timestamp}</span>
-                    </div>
-                    <p className="text-sm text-[var(--muted)] leading-relaxed">
-                      {c.text}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-3xl">
-                   <p className="text-xs font-bold text-[var(--muted)]">No comments yet. Be the first to reply!</p>
-                </div>
               )}
             </div>
-
-            <div className="space-y-4">
-              <label className="block text-sm font-bold text-[var(--foreground)]">Add Comment</label>
-              <div className="relative">
-                <textarea 
-                  value={broadcastComment}
-                  onChange={(e) => setBroadcastComment(e.target.value)}
-                  placeholder="Share your thoughts or ask a question..."
-                  className="min-h-[100px] w-full rounded-2xl border border-[var(--border)] p-4 text-sm font-medium outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[#21130D]/20 pr-12"
-                />
-              </div>
-              
-              <div className="flex gap-3">
-                <button 
-                  onClick={submitBroadcastComment}
-                  disabled={isUpdating || !broadcastComment.trim()}
-                  className="flex-1 rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white transition-all hover:translate-y-[-2px] hover:bg-[var(--accent)] hover:shadow-xl hover:shadow-[#21130D]/40 disabled:opacity-50"
-                >
-                  {isUpdating ? 'Posting...' : 'Post Comment'}
-                </button>
-                <button 
-                  onClick={() => setSelectedBroadcast(null)}
-                  className="flex-1 rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--muted)] transition-all hover:translate-y-[-2px] hover:bg-[var(--accent)] hover:text-white hover:border-[var(--accent)]"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
           </div>
         </div>
+      </div>
+
+      {/* ── Manage Issue Modal ── */}
+      {selectedIssue && (
+        <ManageModal
+          issue={selectedIssue}
+          onClose={() => setSelectedIssue(null)}
+          onSuccess={refetch}
+        />
+      )}
+
+      {/* ── Broadcast Manage Modal (reuse ManageModal for commenting) ── */}
+      {selectedBroadcast && (
+        <ManageModal
+          issue={selectedBroadcast}
+          onClose={() => setSelectedBroadcast(null)}
+          onSuccess={() => {
+            fetchBroadcastFeed().then(setBroadcasts).catch(() => {});
+          }}
+        />
       )}
     </div>
-  );
-}
-
-function StatWidget({ label, value, trend, icon, color }: { label: string, value: string, trend: string, icon: React.ReactNode, color: string }) {
-  const colorMap: Record<string, string> = {
-    emerald: "bg-emerald-50 text-emerald-600",
-    amber: "bg-amber-50 text-amber-600",
-    indigo: "bg-indigo-50 text-indigo-600",
-    blue: "bg-[#21130D]/10 text-[#21130D]",
-  };
-
-  return (
-    <article className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md flex-1">
-      <div className="flex gap-3">
-        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${colorMap[color]} font-bold`}>
-          {React.cloneElement(icon as React.ReactElement)}
-        </div>
-        <div>
-          <p className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-tight">{label}</p>
-          <p className="text-lg font-black text-[var(--foreground)] mt-0.5">{value}</p>
-        </div>
-      </div>
-      <div className={`rounded-lg px-2 py-0.5 text-[9px] font-black ${trend.startsWith('+') || trend.startsWith('-0') ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
-        {trend}
-      </div>
-    </article>
   );
 }

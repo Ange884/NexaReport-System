@@ -1,102 +1,211 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback } from "react";
+import {
+  Bell, CheckCheck, RefreshCw, AlertCircle,
+  Loader2, BellOff, Info, AlertTriangle, CheckCircle2,
+} from "lucide-react";
+import { useNotificationContext } from "@/app/lib/NotificationContext";
+import type { NotificationType, NotificationResponseDto } from "@/app/lib/types";
 
-const initialNotifications = [
-  {
-    id: 1,
-    title: "New issue reported in ICT category",
-    date: "20 August 2026",
-    status: "Pending",
-    iconBg: "bg-[#21130D]/10",
-    iconColor: "text-[#21130D]",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-    ),
-  },
-  {
-    id: 2,
-    title: "High-priority maintenance issue detected",
-    date: "25 September 2026",
-    status: "Urgent",
-    iconBg: "bg-red-50",
-    iconColor: "text-red-500",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-    ),
-  },
-  {
-    id: 3,
-    title: "ISS-2026-0003 marked as Resolved",
-    date: "10 April 2026",
-    status: "Resolved",
-    iconBg: "bg-emerald-50",
-    iconColor: "text-emerald-500",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-    ),
-  },
-];
+// ─── Icon & colour per notification type ─────────────────────────────────────
 
-export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState(initialNotifications);
+const TYPE_CONFIG: Record<
+  NotificationType,
+  { icon: React.ReactNode; bg: string; color: string; label: string }
+> = {
+  ISSUE_CREATED:   { icon: <Bell size={18} />,         bg: "bg-blue-50",    color: "text-blue-600",    label: "New Issue"     },
+  ISSUE_COMMENTED: { icon: <Info size={18} />,         bg: "bg-violet-50",  color: "text-violet-600",  label: "Comment"       },
+  ISSUE_RESOLVED:  { icon: <CheckCircle2 size={18} />, bg: "bg-emerald-50", color: "text-emerald-600", label: "Resolved"      },
+  ISSUE_ASSIGNED:  { icon: <AlertCircle size={18} />,  bg: "bg-amber-50",   color: "text-amber-600",   label: "Assigned"      },
+  ISSUE_RESENT:    { icon: <RefreshCw size={18} />,    bg: "bg-orange-50",  color: "text-orange-600",  label: "Resent"        },
+  GENERAL:         { icon: <AlertTriangle size={18} />,bg: "bg-[#21130D]/10",color:"text-[#21130D]",   label: "General Alert" },
+};
 
-  const dismissNotification = (id: number) => {
-    setNotifications(notifications.filter((n) => n.id !== id));
-  };
+function fmt(dateStr: string) {
+  const d = new Date(dateStr);
+  const now = Date.now();
+  const diff = now - d.getTime();
+  if (diff < 60_000)  return "Just now";
+  if (diff < 3600_000) return `${Math.floor(diff / 60_000)}m ago`;
+  if (diff < 86400_000) return `${Math.floor(diff / 3600_000)}h ago`;
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
+// ─── Single notification row ──────────────────────────────────────────────────
+
+function NotifRow({
+  notif,
+  onRead,
+}: {
+  notif: NotificationResponseDto;
+  onRead: (id: number) => void;
+}) {
+  const cfg = TYPE_CONFIG[notif.type] ?? TYPE_CONFIG.GENERAL;
 
   return (
-    <section className="card p-8 rounded-3xl border border-[var(--border)] shadow-sm bg-[#f8f9fc]">
-      <h2 className="text-2xl font-black text-[var(--foreground)]">Notifications</h2>
-      <p className="mt-1 text-sm font-bold text-[var(--muted)]">
-        Recent system alerts and important priority updates.
-      </p>
+    <div
+      onClick={() => !notif.isRead && onRead(notif.id)}
+      className={`group flex cursor-pointer items-start gap-4 rounded-2xl border p-4 transition-all hover:shadow-sm ${
+        notif.isRead
+          ? "border-transparent bg-white opacity-70"
+          : "border-[var(--accent)]/20 bg-[var(--accent)]/[0.03] hover:border-[var(--accent)]/30"
+      }`}
+    >
+      {/* Icon */}
+      <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${cfg.bg} ${cfg.color}`}>
+        {cfg.icon}
+      </div>
 
-      <div className="mt-8 flex flex-col gap-4">
-        {notifications.length === 0 ? (
-          <p className="text-center font-bold text-[var(--muted)] py-8">
-            No new notifications.
+      {/* Content */}
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <span className={`text-[10px] font-black uppercase tracking-widest ${cfg.color}`}>
+              {cfg.label}
+            </span>
+            <p className={`mt-0.5 text-sm font-bold leading-snug ${notif.isRead ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}>
+              {notif.message}
+            </p>
+          </div>
+          {!notif.isRead && (
+            <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-[var(--accent)]" />
+          )}
+        </div>
+        <p className="mt-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">
+          {fmt(notif.createdAt)}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+export default function AdminNotificationsPage() {
+  const {
+    notifications,
+    unreadCount,
+    isLoading,
+    error,
+    markRead,
+    markAllRead,
+    refetch,
+  } = useNotificationContext();
+
+  const handleMarkAll = useCallback(async () => {
+    await markAllRead();
+  }, [markAllRead]);
+
+  return (
+    <div className="animate-fade-in space-y-6 max-w-3xl">
+
+      {/* Page header */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-black text-[var(--foreground)]">Notifications</h2>
+            {unreadCount > 0 && (
+              <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[var(--accent)] px-1.5 text-xs font-black text-white">
+                {unreadCount}
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-sm font-bold text-[var(--muted)]">
+            {isLoading
+              ? "Loading…"
+              : `${notifications.length} notification${notifications.length !== 1 ? "s" : ""} · ${unreadCount} unread`}
           </p>
-        ) : (
-          notifications.map((notice) => (
-            <div
-              key={notice.id}
-              className="flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm transition hover:shadow-md"
-            >
-              <div className="flex items-center gap-4">
-                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${notice.iconBg} ${notice.iconColor}`}>
-                  {notice.icon}
-                </div>
-                <div>
-                  <h3 className="text-[15px] font-black text-[var(--foreground)]">{notice.title}</h3>
-                  <p className="text-sm font-bold text-[#a0a5b1] mt-0.5">{notice.date}</p>
-                </div>
-              </div>
+        </div>
 
-              <div className="flex items-center gap-8">
-                <span className="text-[15px] font-black text-[var(--foreground)] min-w-[80px] text-right">
-                  {notice.status}
-                </span>
-                <div className="flex items-center gap-2">
-                  <button 
-                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#21130D]/10 text-[#21130D] transition hover:bg-[#21130D]/20"
-                    title="Mark as Read"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
-                  </button>
-                  <button 
-                    onClick={() => dismissNotification(notice.id)}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-50 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
-                    title="Dismiss"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                  </button>
-                </div>
+        <div className="flex items-center gap-2">
+          {unreadCount > 0 && (
+            <button
+              onClick={handleMarkAll}
+              className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-white px-4 py-2 text-sm font-bold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+            >
+              <CheckCheck size={14} /> Mark all read
+            </button>
+          )}
+          <button
+            onClick={refetch}
+            disabled={isLoading}
+            className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-white px-4 py-2 text-sm font-bold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:opacity-40"
+          >
+            <RefreshCw size={14} className={isLoading ? "animate-spin" : ""} /> Refresh
+          </button>
+        </div>
+      </div>
+
+      {/* Error */}
+      {error && (
+        <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-600">
+          <AlertCircle size={16} className="shrink-0" />
+          <span className="flex-1">{error}</span>
+          <button onClick={refetch} className="rounded-lg bg-white px-3 py-1 text-xs shadow-sm transition hover:bg-red-50">
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* Loading */}
+      {isLoading && (
+        <div className="space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex items-center gap-4 rounded-2xl border border-[var(--border)] bg-white p-4">
+              <div className="h-11 w-11 animate-pulse rounded-xl bg-[var(--border)]" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3 w-24 animate-pulse rounded bg-[var(--border)]" />
+                <div className="h-4 w-3/4 animate-pulse rounded bg-[var(--border)]" />
+                <div className="h-2.5 w-20 animate-pulse rounded bg-[var(--border)]" />
               </div>
             </div>
-          ))
-        )}
-      </div>
-    </section>
+          ))}
+        </div>
+      )}
+
+      {/* Empty */}
+      {!isLoading && notifications.length === 0 && !error && (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--border)] py-16 text-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--background)] text-[var(--muted)]">
+            <BellOff size={28} />
+          </div>
+          <p className="text-[15px] font-black text-[var(--foreground)]">All caught up!</p>
+          <p className="mt-1 text-sm font-bold text-[var(--muted)]">No notifications at this time.</p>
+        </div>
+      )}
+
+      {/* Unread group */}
+      {!isLoading && notifications.some((n) => !n.isRead) && (
+        <div>
+          <p className="mb-3 text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">
+            Unread · {unreadCount}
+          </p>
+          <div className="space-y-2">
+            {notifications
+              .filter((n) => !n.isRead)
+              .map((n) => (
+                <NotifRow key={n.id} notif={n} onRead={markRead} />
+              ))}
+          </div>
+        </div>
+      )}
+
+      {/* Read group */}
+      {!isLoading && notifications.some((n) => n.isRead) && (
+        <div>
+          <p className="mb-3 text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">
+            Earlier
+          </p>
+          <div className="space-y-2">
+            {notifications
+              .filter((n) => n.isRead)
+              .map((n) => (
+                <NotifRow key={n.id} notif={n} onRead={markRead} />
+              ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
