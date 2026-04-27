@@ -16,6 +16,11 @@ const navItems = [
     )
   },
   {
+    href: "/admin/send-invite", label: "Send Invitation", icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
+    )
+  },
+  {
     href: "/admin/notifications", label: "Alerts", icon: (
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
     )
@@ -46,7 +51,7 @@ export default function AdminLayout({
   return (
     <div className="flex h-screen overflow-hidden bg-[var(--background)]">
       {/* Sidebar */}
-      <aside className="animate-sidebar sticky top-0 hidden h-full w-64 border-r border-[var(--border)] bg-white p-6 md:block">
+      <aside className="animate-sidebar sticky top-0 hidden h-full w-64 border-r border-[var(--border)] bg-white p-6 md:block overflow-y-auto">
         <div className="mb-10 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent)] text-white shadow-lg">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-6 w-6">
@@ -64,8 +69,8 @@ export default function AdminLayout({
               key={item.href}
               href={item.href}
               className={`flex items-center gap-4 rounded-xl px-4 py-3 text-[16px] font-bold transition-all duration-200 ${pathname === item.href
-                  ? "bg-[var(--accent)] text-white shadow-lg shadow-[#21130D]/40"
-                  : "text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
+                ? "bg-[var(--accent)] text-white shadow-lg shadow-[#21130D]/40"
+                : "text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
                 }`}
             >
               {item.icon}
@@ -74,7 +79,7 @@ export default function AdminLayout({
           ))}
         </nav>
 
-        <div className="absolute bottom-6 left-6 right-6">
+        <div className="mt-10 mb-6">
           <button
             onClick={handleLogout}
             className="flex w-full items-center gap-4 rounded-xl px-4 py-3 text-sm font-bold text-red-500 transition-all hover:bg-red-50"
@@ -95,38 +100,38 @@ export default function AdminLayout({
           </div>
 
           <div className="flex items-center gap-6">
-          <div className="flex items-center gap-4">
-            <div className="relative group">
-              <input
-                type="text"
-                defaultValue={searchParams.get("q") || ""}
-                placeholder="Search issues, reporters..."
-                className="w-64 rounded-full bg-[var(--background)] border border-transparent px-10 py-2.5 text-sm font-medium outline-none transition-all focus:border-[var(--accent)] focus:bg-white focus:ring-4 focus:ring-[#21130D]/20 group-hover:bg-white group-hover:border-[var(--border)]"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    const val = (e.target as HTMLInputElement).value;
-                    router.push(`/admin/manage-issues?q=${encodeURIComponent(val)}`);
-                  }
-                }}
-              />
-              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--muted)] group-focus-within:text-[var(--accent)] transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <div className="flex items-center gap-4">
+              <div className="relative group">
+                <input
+                  type="text"
+                  defaultValue={searchParams.get("q") || ""}
+                  placeholder="Search issues, reporters..."
+                  className="w-64 rounded-full bg-[var(--background)] border border-transparent px-10 py-2.5 text-sm font-medium outline-none transition-all focus:border-[var(--accent)] focus:bg-white focus:ring-4 focus:ring-[#21130D]/20 group-hover:bg-white group-hover:border-[var(--border)]"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const val = (e.target as HTMLInputElement).value;
+                      router.push(`/admin/manage-issues?q=${encodeURIComponent(val)}`);
+                    }
+                  }}
+                />
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--muted)] group-focus-within:text-[var(--accent)] transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </div>
               </div>
-            </div>
-            <Link href={"/admin/notifications"}>
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--background)] text-[var(--muted)] transition hover:text-[var(--accent)] hover:bg-white hover:border border-[var(--border)] cursor-pointer">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-            </div>
-            </Link>
-            <Link href={"/admin/profile"}>
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <p className="text-sm font-bold text-[var(--foreground)] leading-none">System Admin</p>
-                <p className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-widest mt-1">Superuser</p>
-              </div>
-              <div className="h-10 w-10 rounded-full bg-[var(--accent)] border-2 border-white shadow-md"></div>
-            </div>
-            </Link>
+              <Link href={"/admin/notifications"}>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--background)] text-[var(--muted)] transition hover:text-[var(--accent)] hover:bg-white hover:border border-[var(--border)] cursor-pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                </div>
+              </Link>
+              <Link href={"/admin/profile"}>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-[var(--foreground)] leading-none">System Admin</p>
+                    <p className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-widest mt-1">Superuser</p>
+                  </div>
+                  <div className="h-10 w-10 rounded-full bg-[var(--accent)] border-2 border-white shadow-md"></div>
+                </div>
+              </Link>
             </div>
           </div>
         </header>
