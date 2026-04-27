@@ -17,6 +17,7 @@ import {
   MessageCircle,
   RefreshCw
 } from "lucide-react";
+import ActivityCalendar from "./components/ActivityCalendar";
 
 const staticBroadcasts = [
   { id: "b1", title: "Water maintenance in Block B this Saturday", type: "Announcement", date: "Today", priority: "Low", comments: [] },
@@ -30,22 +31,11 @@ const staticIssues = [
   { id: "3", trackingId: "ISS-2026-0003", title: "Need extra revision slot", category: "Academic", priority: "Medium", status: "Resolved", reporter: "Leader C", date: "Apr 15" },
 ];
 
-const dailyActivity = [
-  { day: "Mon", resolved: 12, pending: 5, volume: 17 },
-  { day: "Tue", resolved: 18, pending: 8, volume: 26 },
-  { day: "Wed", resolved: 15, pending: 12, volume: 27 },
-  { day: "Thu", resolved: 25, pending: 4, volume: 29 },
-  { day: "Fri", resolved: 20, pending: 6, volume: 26 },
-  { day: "Sat", resolved: 10, pending: 2, volume: 12 },
-  { day: "Sun", resolved: 8, pending: 3, volume: 11 },
-];
-
 export default function AdminDashboardPage() {
   const [issues, setIssues] = useState<any[]>([]);
   const [broadcasts, setBroadcasts] = useState<any[]>([]);
   const [selectedIssue, setSelectedIssue] = useState<any | null>(null);
   const [selectedBroadcast, setSelectedBroadcast] = useState<any | null>(null);
-  const [activeDay, setActiveDay] = useState<number>(3); // Default to Thursday
   const [response, setResponse] = useState("");
   const [broadcastComment, setBroadcastComment] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -106,7 +96,7 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div className="relative animate-fade-in">
+    <div className="relative animate-fade-in space-y-8">
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Row 1: Urgent Reports, Broadcast Feed, and Stats */}
         
@@ -208,85 +198,38 @@ export default function AdminDashboardPage() {
           <StatWidget label="Pending Actions" value="12" trend="-2" icon={<Clock size={20} />} color="amber" />
           <StatWidget label="Avg Resolution" value="2.4d" trend="-0.5" icon={<Zap size={20} />} color="indigo" />
         </div>
+      </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Row 2: System Activity and Action Card */}
 
-        {/* 4. System Activity Chart */}
-        <section className="lg:col-span-2 flex flex-col rounded-xl border border-[var(--border)] bg-white p-6 shadow-sm min-h-[400px]">
-          <div className="mb-6 flex items-center justify-between">
+        {/* 4. System Activity Calendar */}
+        <section className="lg:col-span-2 flex flex-col rounded-xl border border-[var(--border)] bg-white p-6 shadow-sm min-h-[450px]">
+          <div className="mb-8 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#21130D]/10 text-[#21130D]">
                 <Activity size={20} />
               </div>
               <div>
                 <h3 className="text-xl font-black text-[var(--foreground)] leading-none">System Activity</h3>
-                <p className="mt-1 text-[10px] font-bold text-[var(--muted)] uppercase tracking-widest">Weekly Report Volume</p>
+                <p className="mt-1 text-[10px] font-bold text-[var(--muted)] uppercase tracking-widest">Annual Resolution Tracker</p>
               </div>
             </div>
             <div className="flex gap-4">
-              <span className="flex items-center gap-1.5 text-xs font-bold text-[var(--muted)]">
-                <span className="h-2 w-2 rounded-full bg-[var(--accent)]"></span> Resolved
-              </span>
-              <span className="flex items-center gap-1.5 text-xs font-bold text-[var(--muted)]">
+              <div className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--muted)] uppercase">
+                <span className="h-2 w-2 rounded-full bg-emerald-500"></span> Resolved
+              </div>
+              <div className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--muted)] uppercase">
+                <span className="h-2 w-2 rounded-full bg-blue-400"></span> In Progress
+              </div>
+              <div className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--muted)] uppercase">
                 <span className="h-2 w-2 rounded-full bg-red-400"></span> Pending
-              </span>
+              </div>
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 flex-1">
-            <div className="md:col-span-3 flex items-end gap-3 px-4 pb-2 h-48 md:h-full">
-              {dailyActivity.map((data, i) => (
-                <div 
-                  key={i} 
-                  onClick={() => setActiveDay(i)}
-                  className="group relative flex-1 cursor-pointer"
-                >
-                  <div className="flex h-full flex-col justify-end gap-1">
-                    <div 
-                      className={`w-full rounded-t-xl transition-all duration-300 relative ${activeDay === i ? 'bg-[var(--accent)] shadow-lg' : 'bg-gray-100 group-hover:bg-[#21130D]/10'}`} 
-                      style={{ height: `${(data.volume / 30) * 100}%` }}
-                    >
-                      {/* Visual indicator for resolved portion */}
-                      <div 
-                        className={`absolute bottom-0 w-full rounded-t-lg transition-all duration-300 ${activeDay === i ? 'bg-white/20' : 'bg-[#21130D]/20'}`}
-                        style={{ height: `${(data.resolved / data.volume) * 100}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                  <p className={`mt-3 text-center text-[10px] font-bold uppercase tracking-tighter ${activeDay === i ? 'text-[var(--accent)] font-black' : 'text-[var(--muted)]'}`}>
-                    {data.day}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* Day Details Info Box */}
-            <div className="rounded-2xl bg-gray-50 p-5 flex flex-col justify-center border border-dashed border-gray-200">
-              <div className="mb-4 flex items-center gap-2 border-b border-gray-200 pb-2">
-                 <CalendarDays size={14} className="text-[var(--accent)]" />
-                 <p className="text-[10px] font-black uppercase tracking-widest text-[var(--foreground)]">{dailyActivity[activeDay].day}'s Performance</p>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle size={14} className="text-emerald-500" />
-                    <span className="text-xs font-bold text-[var(--muted)]">Resolved</span>
-                  </div>
-                  <span className="text-sm font-black text-[var(--foreground)]">{dailyActivity[activeDay].resolved}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Clock size={14} className="text-red-400" />
-                    <span className="text-xs font-bold text-[var(--muted)]">Pending</span>
-                  </div>
-                  <span className="text-sm font-black text-[var(--foreground)]">{dailyActivity[activeDay].pending}</span>
-                </div>
-                <div className="pt-3 border-t border-gray-200 flex items-center justify-between">
-                  <span className="text-xs font-black text-[var(--foreground)]">Total Load</span>
-                  <span className="text-lg font-black text-[var(--accent)]">{dailyActivity[activeDay].volume}</span>
-                </div>
-              </div>
-            </div>
+          <div className="flex-1">
+            <ActivityCalendar />
           </div>
         </section>
 
