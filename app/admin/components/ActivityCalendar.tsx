@@ -50,13 +50,6 @@ export default function ActivityCalendar() {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
   };
 
-  const getIntensity = (count: number) => {
-    if (count === 0) return "bg-gray-50";
-    if (count < 5) return "bg-[#21130D]/20";
-    if (count < 10) return "bg-[#21130D]/50";
-    return "bg-[#21130D]";
-  };
-
   const days = [];
   // Empty slots for days of the week before the 1st
   for (let i = 0; i < firstDayOfMonth; i++) {
@@ -67,29 +60,48 @@ export default function ActivityCalendar() {
     const dateKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     const dayData = activityData[dateKey] || { resolved: 0, pending: 0, inProgress: 0 };
     const isSelected = selectedDate === dateKey;
+    const hasActivity = dayData.resolved > 0 || dayData.pending > 0 || dayData.inProgress > 0;
 
     days.push(
-      <div 
-        key={d} 
+      <div
+        key={d}
         onClick={() => setSelectedDate(dateKey)}
-        className={`group relative h-10 w-10 cursor-pointer rounded-lg transition-all duration-200 hover:ring-2 hover:ring-[var(--accent)] hover:ring-offset-2 ${getIntensity(dayData.resolved)} ${isSelected ? 'ring-2 ring-[var(--accent)] ring-offset-2 scale-110 z-10 shadow-lg' : ''}`}
+        className={`group relative h-10 w-10 cursor-pointer rounded-lg transition-all duration-200 flex items-center justify-center
+          ${
+            isSelected
+              ? 'bg-[var(--accent)] shadow-lg shadow-[#21130D]/20 scale-110 z-10'
+              : 'bg-white border border-[var(--border)] hover:border-[var(--accent)] hover:shadow-sm'
+          }`}
       >
-        <span className={`absolute inset-0 flex items-center justify-center text-[10px] font-bold ${dayData.resolved > 8 ? 'text-white' : 'text-[var(--accent)]'} transition-opacity group-hover:opacity-100 ${isSelected ? 'opacity-100' : 'opacity-0'}`}>
+        {/* Date number — always visible */}
+        <span className={`text-[11px] font-bold transition-colors ${
+          isSelected ? 'text-white' : hasActivity ? 'text-[var(--accent)]' : 'text-[var(--muted)]'
+        }`}>
           {d}
         </span>
-        
-        {/* Status indicators */}
-        <div className="absolute -bottom-1 left-1/2 flex -translate-x-1/2 gap-0.5">
-          {dayData.pending > 0 && <div className="h-1 w-1 rounded-full bg-red-400"></div>}
-          {dayData.inProgress > 0 && <div className="h-1 w-1 rounded-full bg-blue-400"></div>}
-        </div>
+
+        {/* Activity indicator dot — subtle, only if data exists */}
+        {hasActivity && !isSelected && (
+          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-[var(--accent)]/40"></div>
+        )}
 
         {/* Tooltip on Hover */}
-        <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 hidden -translate-x-1/2 rounded-lg bg-[var(--accent)] p-2 text-[10px] text-white shadow-xl group-hover:block z-20 whitespace-nowrap">
-          <div className="font-black mb-1">{monthNames[currentDate.getMonth()]} {d}, {currentDate.getFullYear()}</div>
-          <div className="flex items-center gap-1.5"><div className="h-1.5 w-1.5 rounded-full bg-white"></div> Resolved: {dayData.resolved}</div>
-          <div className="flex items-center gap-1.5"><div className="h-1.5 w-1.5 rounded-full bg-red-400"></div> Pending: {dayData.pending}</div>
-          <div className="flex items-center gap-1.5"><div className="h-1.5 w-1.5 rounded-full bg-blue-400"></div> Progress: {dayData.inProgress}</div>
+        <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 hidden -translate-x-1/2 rounded-xl bg-[var(--accent)] p-3 text-[10px] text-white shadow-xl group-hover:block z-20 whitespace-nowrap">
+          <div className="font-black mb-1.5 text-[11px]">{monthNames[currentDate.getMonth()]} {d}, {currentDate.getFullYear()}</div>
+          <div className="space-y-1">
+            <div className="flex items-center justify-between gap-4">
+              <span className="opacity-70">Resolved</span>
+              <span className="font-black">{dayData.resolved}</span>
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <span className="opacity-70">In Progress</span>
+              <span className="font-black">{dayData.inProgress}</span>
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <span className="opacity-70">Pending</span>
+              <span className="font-black">{dayData.pending}</span>
+            </div>
+          </div>
         </div>
       </div>
     );
