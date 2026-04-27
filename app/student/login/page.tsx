@@ -3,18 +3,51 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+import { loginStudent } from "@/app/lib/api";
 
 export default function StudentLoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleLogin(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    router.push("/student/dashboard");
+  async function handleLogin(e: FormEvent<HTMLFormElement>) {
+  e.preventDefault();
+  setIsLoading(true);
+  setError(null);
+
+  try {
+    const data = await loginStudent(email, password);
+
+    // store token
+    const token = data.token || data.accessToken;
+    if (token) {
+      localStorage.setItem("nexa_token", token);
+    }
+
+    // get role
+    const role = data.user?.role || data.role;
+
+    // optional: store user info
+    localStorage.setItem("nexa_user", JSON.stringify(data.user || data));
+
+    // redirect by role
+    if (role === "ADMIN" || "TEACHER" || "NURSE" || "ADMINISTRATIVE_STAFF") {
+      router.push("/admin");
+    } else if (role === "CLASS_MONITOR" || "COMMITTEE_MEMBER" ) {
+      router.push("/student/dashboard");
+    } else {
+      setError("Unknown user role");
+    }
+  } catch (err: any) {
+    setError(err.message || "Invalid credentials. Please try again.");
+  } finally {
+    setIsLoading(false);
   }
+}
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-white flex items-center justify-center">
@@ -68,6 +101,14 @@ export default function StudentLoginPage() {
             Access your student portal.
           </p>
 
+          {/* Error Message */}
+          {error && (
+            <div className="mt-6 flex items-center gap-3 rounded-xl bg-red-50 p-4 text-xs font-bold text-red-600 animate-in fade-in slide-in-from-top-2">
+              <AlertCircle size={16} />
+              {error}
+            </div>
+          )}
+
           <form className="mt-6 space-y-5" onSubmit={handleLogin}>
             {/* Email */}
             <div className="flex flex-col gap-2">
@@ -81,8 +122,9 @@ export default function StudentLoginPage() {
                   placeholder="student@university.edu"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
                   required
-                  className="w-full rounded-xl border border-[#e2e8f0] bg-white py-2.5 pl-10 pr-4 text-sm font-medium text-[#1a202c] outline-none transition focus:border-[#21130D] focus:ring-4 focus:ring-[rgba(33,19,13,0.08)]"
+                  className="w-full rounded-xl border border-[#e2e8f0] bg-white py-2.5 pl-10 pr-4 text-sm font-medium text-[#1a202c] outline-none transition focus:border-[#21130D] focus:ring-4 focus:ring-[rgba(33,19,13,0.08)] disabled:opacity-50"
                 />
               </div>
             </div>
@@ -99,8 +141,9 @@ export default function StudentLoginPage() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
                   required
-                  className="w-full rounded-xl border border-[#e2e8f0] bg-white py-2.5 pl-10 pr-12 text-sm font-medium text-[#1a202c] outline-none transition focus:border-[#21130D] focus:ring-4 focus:ring-[rgba(33,19,13,0.08)]"
+                  className="w-full rounded-xl border border-[#e2e8f0] bg-white py-2.5 pl-10 pr-12 text-sm font-medium text-[#1a202c] outline-none transition focus:border-[#21130D] focus:ring-4 focus:ring-[rgba(33,19,13,0.08)] disabled:opacity-50"
                 />
                 <button
                   type="button"
@@ -127,9 +170,17 @@ export default function StudentLoginPage() {
 
             <button
               type="submit"
-              className="mt-2 block w-full rounded-xl bg-[#21130D] py-3 text-center font-bold text-white shadow-lg transition hover:opacity-90 active:scale-[0.98]"
+              disabled={isLoading}
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#21130D] py-3 text-center font-bold text-white shadow-lg transition hover:opacity-90 active:scale-[0.98] disabled:opacity-70"
             >
-              Sign In
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                "Sign In"
+              )}
             </button>
           </form>
 
