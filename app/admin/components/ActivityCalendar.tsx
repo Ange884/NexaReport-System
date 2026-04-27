@@ -3,22 +3,24 @@
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight, CheckCircle2, Clock, PlayCircle, CalendarDays } from "lucide-react";
 
-// Mock data generator for the calendar
-const generateMockData = () => {
-  const data: Record<string, { resolved: number; pending: number; inProgress: number }> = {};
+type DayData = { resolved: number; pending: number; inProgress: number };
+
+const generateMockData = (): Record<string, DayData> => {
+  const data: Record<string, DayData> = {};
   const year = 2026;
-  
+  // Use a simple deterministic-looking seeded approach per day
+  let seed = 42;
+  const next = () => { seed = (seed * 1664525 + 1013904223) & 0xffffffff; return (seed >>> 0) / 0xffffffff; };
+
   for (let month = 0; month < 12; month++) {
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     for (let day = 1; day <= daysInMonth; day++) {
       const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      // Random activity
-      const seed = Math.random();
-      if (seed > 0.3) {
+      if (next() > 0.3) {
         data[dateKey] = {
-          resolved: Math.floor(Math.random() * 15),
-          pending: Math.floor(Math.random() * 5),
-          inProgress: Math.floor(Math.random() * 8),
+          resolved: Math.floor(next() * 15),
+          pending: Math.floor(next() * 5),
+          inProgress: Math.floor(next() * 8),
         };
       }
     }
@@ -26,11 +28,11 @@ const generateMockData = () => {
   return data;
 };
 
-const activityData = generateMockData();
-
 export default function ActivityCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date(2026, 3, 1)); // April 2026
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  // Generate on client only to avoid SSR/client hydration mismatch from Math.random()
+  const [activityData] = useState<Record<string, { resolved: number; pending: number; inProgress: number }>>(() => generateMockData());
 
   const monthNames = [
     "January", "February", "March", "April", "May", "June",
