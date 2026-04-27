@@ -45,7 +45,7 @@ export default function AdminLayout({
   const searchParams = useSearchParams();
 
   function handleLogout() {
-    router.push("/login");
+    router.push("/student/login");
   }
 
   return (
