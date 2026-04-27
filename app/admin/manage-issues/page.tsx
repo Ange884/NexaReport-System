@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, Suspense } from "react";
 import { ChevronDown, Send, MessageSquare, X } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
@@ -35,20 +35,9 @@ const staticIssues: AdminIssue[] = [
   },
 ];
 
-const categories: (IssueCategory | "All")[] = [
-  "All",
-  "Maintenance",
-  "ICT",
-  "Academic",
-  "Other",
-];
+const categories: (IssueCategory | "All")[] = ["All", "Maintenance", "ICT", "Academic", "Other"];
 const priorities: (IssuePriority | "All")[] = ["All", "High", "Medium", "Low"];
-const statuses: (IssueStatus | "All")[] = [
-  "All",
-  "Pending",
-  "In Progress",
-  "Resolved",
-];
+const statuses: (IssueStatus | "All")[] = ["All", "Pending", "In Progress", "Resolved"];
 
 const priorityClasses: Record<IssuePriority, string> = {
   High: "border-red-300 bg-red-50 text-red-700",
@@ -56,7 +45,8 @@ const priorityClasses: Record<IssuePriority, string> = {
   Low: "border-emerald-300 bg-emerald-50 text-emerald-700",
 };
 
-export default function ManageIssuesPage() {
+// Inner component that uses useSearchParams — must be wrapped in Suspense
+function ManageIssuesContent() {
   const searchParams = useSearchParams();
   const q = searchParams.get("q") || "";
 
@@ -65,8 +55,6 @@ export default function ManageIssuesPage() {
   const [priority, setPriority] = useState<(typeof priorities)[number]>("All");
   const [status, setStatus] = useState<(typeof statuses)[number]>("All");
   const [issues, setIssues] = useState<AdminIssue[]>(staticIssues);
-  
-  // Response modal state
   const [selectedIssue, setSelectedIssue] = useState<AdminIssue | null>(null);
   const [adminResponse, setAdminResponse] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -81,7 +69,7 @@ export default function ManageIssuesPage() {
   };
 
   const handleUpdate = (id: string, updatedStatus: IssueStatus, assignTo: string) => {
-    setIssues((prev) => 
+    setIssues((prev) =>
       prev.map((issue) =>
         issue.id === id ? { ...issue, status: updatedStatus, assignedTo: assignTo } : issue
       )
@@ -92,15 +80,20 @@ export default function ManageIssuesPage() {
     if (!selectedIssue || !adminResponse.trim()) return;
     setIsSubmitting(true);
     setTimeout(() => {
-      setIssues(prev => prev.map(issue => 
-        issue.id === selectedIssue.id 
-          ? { 
-              ...issue, 
-              status: 'In Progress', 
-              comments: [...issue.comments, { author: 'Admin', text: adminResponse, timestamp: 'Just now' }] 
-            }
-          : issue
-      ));
+      setIssues((prev) =>
+        prev.map((issue) =>
+          issue.id === selectedIssue.id
+            ? {
+                ...issue,
+                status: "In Progress",
+                comments: [
+                  ...issue.comments,
+                  { author: "Admin", text: adminResponse, timestamp: "Just now" },
+                ],
+              }
+            : issue
+        )
+      );
       setSelectedIssue(null);
       setIsSubmitting(false);
     }, 1000);
@@ -119,23 +112,6 @@ export default function ManageIssuesPage() {
     });
   }, [issues, keyword, category, priority, status]);
 
-  function updateIssue(id: string, updatedStatus: IssueStatus, 
-    assignTo: string) {
-    setIssues((prev) => {
-      const updated = prev.map((issue) =>
-        issue.id === id
-          ? {
-              ...issue,
-              status: updatedStatus,
-              assignedTo: assignTo,
-            }
-          : issue,
-      );
-      // saveIssues(updated); // Backend/Storage removed
-      return updated;
-    });
-  }
-
   return (
     <section className="card p-8 rounded-3xl border border-[var(--border)] shadow-sm bg-[#f8f9fc]">
       <div className="flex flex-wrap items-center justify-between gap-3 px-2">
@@ -147,70 +123,55 @@ export default function ManageIssuesPage() {
         </div>
       </div>
 
-      {/* import { ChevronDown } from "lucide-react"; */}
+      <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-4 bg-white p-4 rounded-2xl border border-[var(--border)] shadow-sm">
+        <input
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          placeholder="Search keyword or ID..."
+          className="rounded-xl border border-[var(--border)] px-4 py-2.5 text-[15px] font-medium outline-none transition focus:border-[var(--accent)] md:col-span-2"
+        />
 
-<div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-4 bg-white p-4 rounded-2xl border border-[var(--border)] shadow-sm">
+        <div className="relative w-full">
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value as typeof category)}
+            className="appearance-none w-full rounded-xl border border-[var(--border)] px-4 pr-10 py-2.5 text-[15px] text-gray-500 font-medium outline-none transition focus:border-[var(--accent)]"
+          >
+            {categories.map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+        </div>
 
-  {/* Search */}
-  <input
-    value={keyword}
-    onChange={(e) => setKeyword(e.target.value)}
-    placeholder="Search keyword or ID..."
-    className="rounded-xl border border-[var(--border)] px-4 py-2.5 text-[15px] font-medium outline-none transition focus:border-[var(--accent)] md:col-span-2"
-  />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="relative w-full">
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value as typeof priority)}
+              className="appearance-none w-full rounded-xl border border-[var(--border)] px-4 pr-10 py-2.5 text-gray-500 text-[15px] font-medium outline-none transition focus:border-[var(--accent)]"
+            >
+              {priorities.map((p) => (
+                <option key={p}>{p}</option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+          </div>
 
-  {/* Category */}
-  <div className="relative w-full">
-    <select
-      value={category}
-      onChange={(e) => setCategory(e.target.value as typeof category)}
-      className="appearance-none w-full rounded-xl border border-[var(--border)] px-4 pr-10 py-2.5 text-[15px] text-gray-500 font-medium outline-none transition focus:border-[var(--accent)]"
-    >
-      {categories.map((c) => (
-        <option key={c} className="text-gray-500">{c}</option>
-      ))}
-    </select>
-
-    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-  </div>
-
-  {/* Priority + Status */}
-  <div className="grid grid-cols-2 gap-4">
-
-    {/* Priority */}
-    <div className="relative w-full">
-      <select
-        value={priority}
-        onChange={(e) => setPriority(e.target.value as typeof priority)}
-        className="appearance-none w-full rounded-xl border border-[var(--border)] px-4 pr-10 py-2.5 text-gray-500 text-[15px] font-medium outline-none transition focus:border-[var(--accent)]"
-      >
-        {priorities.map((p) => (
-          <option key={p} className="text-gray-500">{p}</option>
-        ))}
-      </select>
-
-      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-    </div>
-
-    {/* Status */}
-    <div className="relative w-full">
-      <select
-        value={status}
-        onChange={(e) => setStatus(e.target.value as typeof status)}
-        className="appearance-none w-full rounded-xl border border-[var(--border)] px-4 pr-10 py-2.5 text-gray-500 text-[15px] font-medium outline-none transition focus:border-[var(--accent)]"
-      >
-        {statuses.map((s) => (
-          <option key={s} className="text-gray-500">
-            {s}
-          </option>
-        ))}
-      </select>
-
-      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-    </div>
-
-  </div>
-</div>
+          <div className="relative w-full">
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as typeof status)}
+              className="appearance-none w-full rounded-xl border border-[var(--border)] px-4 pr-10 py-2.5 text-gray-500 text-[15px] font-medium outline-none transition focus:border-[var(--accent)]"
+            >
+              {statuses.map((s) => (
+                <option key={s}>{s}</option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+          </div>
+        </div>
+      </div>
 
       <div className="mt-6 flex flex-col gap-4">
         {filteredIssues.length === 0 ? (
@@ -223,10 +184,9 @@ export default function ManageIssuesPage() {
               key={issue.id}
               className="flex flex-col gap-4 rounded-2xl border border-[var(--border)] bg-white p-5 shadow-sm transition hover:shadow-md"
             >
-              {/* Top Row: Title, ID, and Badges */}
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="flex gap-4">
-                  <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gray-50 text-gray-500`}>
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gray-50 text-gray-500">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                   </div>
                   <div>
@@ -236,23 +196,24 @@ export default function ManageIssuesPage() {
                     </div>
                     <p className="mt-1 text-sm font-medium text-[var(--muted)] line-clamp-1">{issue.description}</p>
                     <div className="mt-2 flex flex-wrap gap-2 text-xs font-bold">
-                      <span className="rounded-md bg-gray-100 px-2.5 py-1 text-gray-600">
-                        {issue.category}
-                      </span>
+                      <span className="rounded-md bg-gray-100 px-2.5 py-1 text-gray-600">{issue.category}</span>
                       <span className={`rounded-md px-2.5 py-1 ${priorityClasses[issue.priority]}`}>
                         {issue.priority} Priority
                       </span>
                     </div>
                   </div>
                 </div>
-                
-                {/* Status Badge */}
+
                 <div className="flex items-center">
-                  <span className={`rounded-lg px-3 py-1 font-black text-[13px] uppercase tracking-wider ${
-                    issue.status === 'Resolved' ? 'bg-emerald-100 text-emerald-600' :
-                    issue.status === 'In Progress' ? 'bg-[#21130D]/10 text-[#21130D]' :
-                    'bg-amber-100 text-amber-600'
-                  }`}>
+                  <span
+                    className={`rounded-lg px-3 py-1 font-black text-[13px] uppercase tracking-wider ${
+                      issue.status === "Resolved"
+                        ? "bg-emerald-100 text-emerald-600"
+                        : issue.status === "In Progress"
+                        ? "bg-[#21130D]/10 text-[#21130D]"
+                        : "bg-amber-100 text-amber-600"
+                    }`}
+                  >
                     {issue.status}
                   </span>
                 </div>
@@ -260,19 +221,11 @@ export default function ManageIssuesPage() {
 
               <div className="h-[1px] w-full bg-gray-100"></div>
 
-              {/* Bottom Row: Actions */}
               <div className="flex flex-wrap items-center justify-between gap-4">
-                {/* Admin Selectors */}
                 <div className="flex flex-wrap gap-3">
                   <select
                     defaultValue={issue.status}
-                    onChange={(e) =>
-                      handleUpdate(
-                        issue.id,
-                        e.target.value as IssueStatus,
-                        issue.assignedTo,
-                      )
-                    }
+                    onChange={(e) => handleUpdate(issue.id, e.target.value as IssueStatus, issue.assignedTo)}
                     className="h-10 rounded-xl border border-[var(--border)] px-4 bg-gray-50 text-[13px] font-bold outline-none transition focus:border-[var(--accent)] hover:border-[var(--accent)]"
                   >
                     {statuses
@@ -284,9 +237,9 @@ export default function ManageIssuesPage() {
                   <input
                     onBlur={(e) => handleUpdate(issue.id, issue.status, e.target.value)}
                     placeholder="Assign to team..."
-                    className="h-10 w-48 rounded-xl border border-[var(--border)] px-4 bg-gray-50 text-[13px] font-medium outline-none transition focus:border-[var(--accent)]-500 hover:border-[var(--accent)]"
+                    className="h-10 w-48 rounded-xl border border-[var(--border)] px-4 bg-gray-50 text-[13px] font-medium outline-none transition focus:border-[var(--accent)] hover:border-[var(--accent)]"
                   />
-                  <button 
+                  <button
                     onClick={() => handleRespond(issue)}
                     className="flex h-10 items-center gap-2 rounded-xl bg-[var(--accent-soft)] px-5 text-[13px] font-black text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white transition"
                   >
@@ -305,7 +258,6 @@ export default function ManageIssuesPage() {
                 </div>
               </div>
 
-              {/* Admin Comments */}
               {issue.comments.length > 0 && (
                 <div className="mt-2 rounded-xl border border-[var(--border)] bg-[var(--accent-soft)] p-4">
                   <p className="flex items-center gap-2 text-[11px] font-black uppercase tracking-wider text-[var(--muted)] mb-2">
@@ -338,7 +290,7 @@ export default function ManageIssuesPage() {
                 <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">{selectedIssue.trackingId}</p>
                 <h3 className="text-xl font-black text-[var(--foreground)] mt-1">Respond to Issue</h3>
               </div>
-              <button 
+              <button
                 onClick={() => setSelectedIssue(null)}
                 className="rounded-full p-2 hover:bg-gray-100 transition-colors"
               >
@@ -348,32 +300,30 @@ export default function ManageIssuesPage() {
 
             <div className="mb-6 rounded-2xl bg-gray-50 p-5 border border-[var(--border)]">
               <p className="text-sm font-bold text-[var(--foreground)] mb-1">{selectedIssue.title}</p>
-              <p className="text-xs text-[var(--muted)] leading-relaxed line-clamp-2">
-                {selectedIssue.description}
-              </p>
+              <p className="text-xs text-[var(--muted)] leading-relaxed line-clamp-2">{selectedIssue.description}</p>
             </div>
 
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-bold text-[var(--foreground)] mb-2">Your Answer</label>
-                <textarea 
+                <textarea
                   value={adminResponse}
                   onChange={(e) => setAdminResponse(e.target.value)}
                   placeholder="Type your official response to the student..."
                   className="min-h-[140px] w-full rounded-2xl border border-[var(--border)] p-4 text-[15px] font-medium outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[#21130D]/20"
                 />
               </div>
-              
+
               <div className="flex gap-3 pt-2">
-                <button 
+                <button
                   onClick={submitResponse}
                   disabled={isSubmitting || !adminResponse.trim()}
                   className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-3.5 text-sm font-black text-white shadow-lg shadow-[#21130D]/30 transition-all hover:brightness-125 hover:translate-y-[-2px] active:translate-y-0 disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none"
                 >
                   <Send size={18} />
-                  {isSubmitting ? 'Sending...' : 'Send Response'}
+                  {isSubmitting ? "Sending..." : "Send Response"}
                 </button>
-                <button 
+                <button
                   onClick={() => setSelectedIssue(null)}
                   className="flex-1 rounded-xl border border-[var(--border)] py-3.5 text-sm font-bold text-[var(--muted)] transition-all hover:bg-gray-50"
                 >
@@ -385,5 +335,20 @@ export default function ManageIssuesPage() {
         </div>
       )}
     </section>
+  );
+}
+
+// Page default export — wraps content in Suspense so useSearchParams is safe at prerender
+export default function ManageIssuesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#21130D] border-t-transparent"></div>
+        </div>
+      }
+    >
+      <ManageIssuesContent />
+    </Suspense>
   );
 }
