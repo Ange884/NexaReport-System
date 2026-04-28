@@ -44,17 +44,17 @@ export default function AdminLoginContent() {
         );
         const { clearSession } = await import("@/app/lib/auth");
         clearSession();
+        setIsLoading(false);
         return;
       }
 
       // Redirect to the page they originally tried to access, or /admin
       const next = searchParams.get("next") || "/admin";
-      router.replace(next.startsWith("/admin") ? next : "/admin");
+      window.location.href = next.startsWith("/admin") ? next : "/admin";
     } catch (err: unknown) {
       const msg =
         err instanceof Error ? err.message : "Invalid credentials. Please try again.";
       setError(msg);
-    } finally {
       setIsLoading(false);
     }
   }

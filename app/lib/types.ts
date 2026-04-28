@@ -9,21 +9,22 @@ export type UserRole =
   | "CLASS_MONITOR"
   | "STUDENT";
 
-export type UserStatus = "ACTIVE" | "INACTIVE" | "PENDING";
+export type UserStatus = "INVITED" | "ACTIVE" | "DEACTIVATED";
 
 export type IssuePriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
 export type IssueStatus = "PENDING" | "IN_PROGRESS" | "RESOLVED";
 
-export type IssueTargetType = "USER" | "ROLE" | "BROADCAST";
+export type IssueTargetType = "USER" | "ROLE" | "ALL";
 
 export type NotificationType =
   | "ISSUE_CREATED"
+  | "ISSUE_UPDATED"
   | "ISSUE_COMMENTED"
   | "ISSUE_RESOLVED"
   | "ISSUE_ASSIGNED"
-  | "ISSUE_RESENT"
-  | "GENERAL";
+  | "PRIORITY_OVERDUE"
+  | "PENDING_THRESHOLD_EXCEEDED";
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
@@ -126,7 +127,7 @@ export interface IssueEditRequest {
 }
 
 export interface IssueCommentRequest {
-  content: string;
+  message: string;
 }
 
 export interface IssueResolveRequest {

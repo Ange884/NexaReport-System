@@ -39,7 +39,7 @@ export default function StudentLoginContent() {
 
       // If admin-tier, send to admin portal
       if (isAdminRole(role)) {
-        router.replace("/admin");
+        window.location.href = "/admin";
         return;
       }
 
@@ -48,14 +48,13 @@ export default function StudentLoginContent() {
       const destination =
         next && next.startsWith("/student") ? next : getDefaultRoute(role);
 
-      router.replace(destination);
+      window.location.href = destination;
     } catch (err: unknown) {
       const msg =
         err instanceof Error
           ? err.message
           : "Invalid credentials. Please try again.";
       setError(msg);
-    } finally {
       setIsLoading(false);
     }
   }

@@ -19,7 +19,7 @@ const navItems = [
     ),
   },
   {
-    href: "/student/dashboard/my-issues",
+    href: "/student/dashboard/issues",
     label: "My Issues",
     exact: false,
     icon: (
@@ -27,11 +27,19 @@ const navItems = [
     ),
   },
   {
-    href: "/student/dashboard/new-issue",
+    href: "/student/dashboard/submit",
     label: "Submit Issue",
     exact: false,
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+    ),
+  },
+  {
+    href: "/student/dashboard/public",
+    label: "Public Feed",
+    exact: false,
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
     ),
   },
   {
@@ -43,8 +51,8 @@ const navItems = [
     ),
   },
   {
-    href: "/student/dashboard/profile",
-    label: "Profile",
+    href: "/student/dashboard/settings",
+    label: "Settings",
     exact: false,
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>

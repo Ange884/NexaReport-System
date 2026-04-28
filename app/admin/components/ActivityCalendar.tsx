@@ -1,117 +1,101 @@
 "use client";
 
 import React, { useState } from "react";
-import { ChevronLeft, ChevronRight, CheckCircle2, Clock, PlayCircle, CalendarDays } from "lucide-react";
+import { ChevronLeft, ChevronRight, CheckCircle2, CalendarDays } from "lucide-react";
 
-type DayData = { resolved: number; pending: number; inProgress: number };
+export interface ActivityDay {
+  date: string;       // "YYYY-MM-DD"
+  resolvedCount: number;
+}
 
-const generateMockData = (): Record<string, DayData> => {
-  const data: Record<string, DayData> = {};
-  const year = 2026;
-  // Use a simple deterministic-looking seeded approach per day
-  let seed = 42;
-  const next = () => { seed = (seed * 1664525 + 1013904223) & 0xffffffff; return (seed >>> 0) / 0xffffffff; };
+interface Props {
+  data?: ActivityDay[];
+}
 
-  for (let month = 0; month < 12; month++) {
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    for (let day = 1; day <= daysInMonth; day++) {
-      const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      if (next() > 0.3) {
-        data[dateKey] = {
-          resolved: Math.floor(next() * 15),
-          pending: Math.floor(next() * 5),
-          inProgress: Math.floor(next() * 8),
-        };
-      }
-    }
-  }
-  return data;
-};
-
-export default function ActivityCalendar() {
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 3, 1)); // April 2026
+export default function ActivityCalendar({ data = [] }: Props) {
+  const [currentDate, setCurrentDate] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  // Generate on client only to avoid SSR/client hydration mismatch from Math.random()
-  const [activityData] = useState<Record<string, { resolved: number; pending: number; inProgress: number }>>(() => generateMockData());
+
+  // Build a lookup map from the real data
+  const dataMap = React.useMemo(() => {
+    const m: Record<string, number> = {};
+    data.forEach((d) => { m[d.date] = d.resolvedCount; });
+    return m;
+  }, [data]);
 
   const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December",
   ];
 
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
 
-  const prevMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-  };
+  const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
 
-  const nextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
-  };
+  // Max resolved in current month for intensity scaling
+  const maxResolved = React.useMemo(() => {
+    let max = 0;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const key = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      max = Math.max(max, dataMap[key] ?? 0);
+    }
+    return max || 1;
+  }, [currentDate, daysInMonth, dataMap]);
 
-  const days = [];
-  // Empty slots for days of the week before the 1st
+  const days: React.ReactNode[] = [];
   for (let i = 0; i < firstDayOfMonth; i++) {
-    days.push(<div key={`empty-${i}`} className="h-10 w-10"></div>);
+    days.push(<div key={`e-${i}`} className="h-10 w-10" />);
   }
 
   for (let d = 1; d <= daysInMonth; d++) {
-    const dateKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    const dayData = activityData[dateKey] || { resolved: 0, pending: 0, inProgress: 0 };
+    const dateKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const resolved = dataMap[dateKey] ?? 0;
     const isSelected = selectedDate === dateKey;
-    const hasActivity = dayData.resolved > 0 || dayData.pending > 0 || dayData.inProgress > 0;
+    const intensity = resolved > 0 ? Math.max(0.15, resolved / maxResolved) : 0;
 
     days.push(
       <div
         key={d}
         onClick={() => setSelectedDate(dateKey)}
-        className={`group relative h-10 w-10 cursor-pointer rounded-lg transition-all duration-200 flex items-center justify-center
-          ${
-            isSelected
-              ? 'bg-[var(--accent)] shadow-lg shadow-[#21130D]/20 scale-110 z-10'
-              : 'bg-white border border-[var(--border)] hover:border-[var(--accent)] hover:shadow-sm'
-          }`}
+        className={`group relative h-10 w-10 cursor-pointer rounded-lg transition-all duration-200 flex items-center justify-center ${
+          isSelected
+            ? "bg-[var(--accent)] shadow-lg shadow-[#21130D]/20 scale-110 z-10"
+            : "bg-white border border-[var(--border)] hover:border-[var(--accent)] hover:shadow-sm"
+        }`}
+        style={!isSelected && resolved > 0 ? { backgroundColor: `rgba(33,19,13,${intensity * 0.18})` } : undefined}
       >
-        {/* Date number — always visible */}
         <span className={`text-[11px] font-bold transition-colors ${
-          isSelected ? 'text-white' : hasActivity ? 'text-[var(--accent)]' : 'text-[var(--muted)]'
+          isSelected ? "text-white" : resolved > 0 ? "text-[var(--accent)]" : "text-[var(--muted)]"
         }`}>
           {d}
         </span>
 
-        {/* Activity indicator dot — subtle, only if data exists */}
-        {hasActivity && !isSelected && (
-          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-[var(--accent)]/40"></div>
+        {resolved > 0 && !isSelected && (
+          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-emerald-500" />
         )}
 
-        {/* Tooltip on Hover */}
+        {/* Tooltip */}
         <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 hidden -translate-x-1/2 rounded-xl bg-[var(--accent)] p-3 text-[10px] text-white shadow-xl group-hover:block z-20 whitespace-nowrap">
-          <div className="font-black mb-1.5 text-[11px]">{monthNames[currentDate.getMonth()]} {d}, {currentDate.getFullYear()}</div>
-          <div className="space-y-1">
-            <div className="flex items-center justify-between gap-4">
-              <span className="opacity-70">Resolved</span>
-              <span className="font-black">{dayData.resolved}</span>
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <span className="opacity-70">In Progress</span>
-              <span className="font-black">{dayData.inProgress}</span>
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <span className="opacity-70">Pending</span>
-              <span className="font-black">{dayData.pending}</span>
-            </div>
+          <div className="font-black mb-1 text-[11px]">{monthNames[currentDate.getMonth()]} {d}, {currentDate.getFullYear()}</div>
+          <div className="flex items-center justify-between gap-4">
+            <span className="opacity-70">Resolved</span>
+            <span className="font-black">{resolved}</span>
           </div>
         </div>
       </div>
     );
   }
 
-  const selectedData = selectedDate ? activityData[selectedDate] : null;
+  const selectedResolved = selectedDate ? (dataMap[selectedDate] ?? 0) : null;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-5 gap-6 h-full">
-      {/* Calendar Grid */}
+      {/* Calendar grid */}
       <div className="md:col-span-3">
         <div className="mb-4 flex items-center justify-between">
           <h4 className="text-sm font-black text-[var(--accent)] uppercase tracking-widest">
@@ -128,67 +112,39 @@ export default function ActivityCalendar() {
         </div>
 
         <div className="grid grid-cols-7 gap-2 mb-2">
-          {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
+          {["Su","Mo","Tu","We","Th","Fr","Sa"].map((day) => (
             <div key={day} className="text-center text-[10px] font-black text-[var(--muted)] uppercase tracking-tighter">{day}</div>
           ))}
         </div>
 
-        <div className="grid grid-cols-7 gap-2">
-          {days}
-        </div>
+        <div className="grid grid-cols-7 gap-2">{days}</div>
       </div>
 
-      {/* Selected Day Stats */}
+      {/* Selected day stats */}
       <div className="md:col-span-2 flex flex-col justify-center gap-4 rounded-2xl bg-gray-50/50 p-5 border border-dashed border-gray-200">
-        {selectedData ? (
+        {selectedDate !== null ? (
           <>
             <div className="border-b border-gray-200 pb-3">
               <p className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">Activity for</p>
               <h5 className="text-sm font-black text-[var(--accent)] mt-1">{selectedDate}</h5>
             </div>
-            
-            <div className="space-y-3">
-              <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-                    <CheckCircle2 size={16} />
-                  </div>
-                  <span className="text-xs font-bold text-[var(--muted)]">Resolved</span>
+            <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                  <CheckCircle2 size={16} />
                 </div>
-                <span className="text-sm font-black text-[var(--foreground)]">{selectedData.resolved}</span>
+                <span className="text-xs font-bold text-[var(--muted)]">Issues Resolved</span>
               </div>
-
-              <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue-500">
-                    <PlayCircle size={16} />
-                  </div>
-                  <span className="text-xs font-bold text-[var(--muted)]">In Progress</span>
-                </div>
-                <span className="text-sm font-black text-[var(--foreground)]">{selectedData.inProgress}</span>
-              </div>
-
-              <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500">
-                    <Clock size={16} />
-                  </div>
-                  <span className="text-xs font-bold text-[var(--muted)]">Pending</span>
-                </div>
-                <span className="text-sm font-black text-[var(--foreground)]">{selectedData.pending}</span>
-              </div>
+              <span className="text-sm font-black text-[var(--foreground)]">{selectedResolved}</span>
             </div>
-
-            <div className="mt-2 text-center">
-              <p className="text-[10px] font-bold text-[var(--muted)] leading-tight italic">
-                {selectedData.resolved > 10 ? "🔥 Peak resolution performance!" : "Steady progress maintained."}
-              </p>
-            </div>
+            <p className="text-center text-[10px] font-bold text-[var(--muted)] italic">
+              {(selectedResolved ?? 0) > 5 ? "🔥 High resolution day!" : (selectedResolved ?? 0) > 0 ? "Steady progress." : "No resolutions recorded."}
+            </p>
           </>
         ) : (
           <div className="text-center py-10">
             <CalendarDays size={32} className="mx-auto text-gray-300 mb-3" />
-            <p className="text-xs font-bold text-[var(--muted)]">Select a date to view<br/>detailed activity</p>
+            <p className="text-xs font-bold text-[var(--muted)]">Select a date to view<br />resolution activity</p>
           </div>
         )}
       </div>

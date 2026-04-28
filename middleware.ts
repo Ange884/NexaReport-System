@@ -29,6 +29,7 @@ const ADMIN_PROTECTED = [
   "/admin/notifications",
   "/admin/archive",
   "/admin/profile",
+  "/admin/system-activity",
 ];
 
 const STUDENT_PROTECTED = ["/student/dashboard"];

@@ -280,6 +280,16 @@ export async function deleteUser(userId: number): Promise<MessageResponse> {
   });
 }
 
+/**
+ * GET /api/users/by-role/:role
+ * Returns all users with the given role.
+ */
+export async function fetchUsersByRole(role: string): Promise<UserResponse[]> {
+  return authorizedRequest<UserResponse[]>(
+    `/api/users/by-role/${encodeURIComponent(role)}`
+  );
+}
+
 // ─── Dashboard endpoint ───────────────────────────────────────────────────────
 
 /**
@@ -482,3 +492,31 @@ export async function markAllNotificationsRead(): Promise<MessageResponse> {
 
 // ─── Legacy alias (keeps old imports working) ─────────────────────────────────
 export { loginUser as loginStudent };
+
+// ─── System monitoring endpoints ─────────────────────────────────────────────
+
+export interface SystemActivityItem {
+  date: string;
+  resolvedCount: number;
+}
+
+export interface PrioritySummary {
+  priorityUnresolvedTotal: number;
+  overduePriorityTotal: number;
+}
+
+/**
+ * GET /api/system/activity
+ * Returns resolved issues per day (admin/staff only).
+ */
+export async function fetchSystemActivity(): Promise<SystemActivityItem[]> {
+  return authorizedRequest<SystemActivityItem[]>("/api/system/activity");
+}
+
+/**
+ * GET /api/system/priority-summary
+ * Returns priority unresolved + overdue counts (admin/staff only).
+ */
+export async function fetchPrioritySummary(): Promise<PrioritySummary> {
+  return authorizedRequest<PrioritySummary>("/api/system/priority-summary");
+}

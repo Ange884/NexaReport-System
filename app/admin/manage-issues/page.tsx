@@ -64,7 +64,7 @@ function IssueModal({
     setError(null);
     try {
       if (tab === "comment") {
-        await commentOnIssue(issue.id, { content });
+        await commentOnIssue(issue.id, { message: content });
       } else {
         await resolveIssue(issue.id, { resolutionMessage: content });
       }

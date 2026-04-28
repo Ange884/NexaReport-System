@@ -10,7 +10,7 @@ import {
 import ActivityCalendar from "./components/ActivityCalendar";
 import { useDashboard } from "@/app/lib/hooks";
 import { useNotificationContext } from "@/app/lib/NotificationContext";
-import { commentOnIssue, resolveIssue, fetchBroadcastFeed } from "@/app/lib/api";
+import { commentOnIssue, resolveIssue, fetchBroadcastFeed, fetchSystemActivity, type SystemActivityItem } from "@/app/lib/api";
 import type {
   IssueResponseDto, IssuePriority, IssueStatus, NotificationResponseDto,
 } from "@/app/lib/types";
@@ -50,7 +50,7 @@ function ManageModal({ issue, onClose, onSuccess }: ManageModalProps) {
     setError(null);
     try {
       if (tab === "comment") {
-        await commentOnIssue(issue.id, { content });
+        await commentOnIssue(issue.id, { message: content });
       } else {
         await resolveIssue(issue.id, { resolutionMessage: content });
       }
@@ -244,16 +244,22 @@ export default function AdminDashboardPage() {
   const [broadcastLoading, setBroadcastLoading] = useState(true);
   const [broadcastError, setBroadcastError]     = useState<string | null>(null);
 
+  // System activity state
+  const [activityData, setActivityData] = useState<SystemActivityItem[]>([]);
+
   // Modals
   const [selectedIssue,     setSelectedIssue]     = useState<IssueResponseDto | null>(null);
   const [selectedBroadcast, setSelectedBroadcast] = useState<IssueResponseDto | null>(null);
 
-  // Fetch broadcasts once on mount
+  // Fetch broadcasts + system activity once on mount
   React.useEffect(() => {
     fetchBroadcastFeed()
       .then(setBroadcasts)
       .catch((e) => setBroadcastError(e instanceof Error ? e.message : "Failed to load broadcasts"))
       .finally(() => setBroadcastLoading(false));
+    fetchSystemActivity()
+      .then(setActivityData)
+      .catch(() => {}); // silently ignore — calendar falls back to empty
   }, []);
 
   // Derived stats from DashboardResponse field names
@@ -448,7 +454,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
           <div className="flex-1">
-            <ActivityCalendar />
+            <ActivityCalendar data={activityData} />
           </div>
         </section>
 

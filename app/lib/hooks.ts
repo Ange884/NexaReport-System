@@ -16,6 +16,7 @@ import {
   getCurrentUser,
   clearSession,
   setupSession,
+  getUserRole,
 } from "./auth";
 import {
   getCurrentUser as fetchUserFromApi,
@@ -51,7 +52,6 @@ export interface AuthState {
  * Usage: const { user, isLoading, logout } = useAuth();
  */
 export function useAuth(): AuthState {
-  const router = useRouter();
   const [user, setUser] = useState<UserResponse | null>(() =>
     getCurrentUser()
   );
@@ -95,24 +95,22 @@ export function useAuth(): AuthState {
   }, [refreshUser]);
 
   const logout = useCallback(async () => {
+    // Capture role synchronously BEFORE anything async or session clearing
+    const role = getUserRole();
+    const destination = role && ["ADMIN","TEACHER","NURSE","ADMINISTRATIVE_STAFF"].includes(role)
+      ? "/admin/login"
+      : "/student/login";
+
     try {
       await logoutUser();
     } catch {
-      // Always clear client-side session even if backend call fails
+      // Always proceed with client-side logout even if backend call fails
     } finally {
-      const currentUser = user;
       clearSession();
       setUser(null);
-      // Route to appropriate login page
-      if (currentUser) {
-        import("./types").then(({ isAdminRole }) => {
-          router.push(isAdminRole(currentUser.role) ? "/admin/login" : "/student/login");
-        });
-      } else {
-        router.push("/");
-      }
+      window.location.href = destination;
     }
-  }, [router, user]);
+  }, []);
 
   return {
     user,
