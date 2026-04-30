@@ -179,12 +179,12 @@ export default function StudentLoginContent() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-xs text-[#718096]">
+          {/* <p className="mt-6 text-center text-xs text-[#718096]">
             Not a student?{" "}
             <Link href="/admin/login" className="font-bold text-[#21130D] hover:underline">
               Admin login
             </Link>
-          </p>
+          </p> */}
         </div>
       </div>
 

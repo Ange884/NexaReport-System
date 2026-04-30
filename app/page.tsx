@@ -83,7 +83,7 @@ export default function LandingPage() {
           </div>
 
           <div className="hidden items-center gap-3 md:flex">
-            <Link href="/login" className="rounded-full border border-[#e2e8f0] px-5 py-2 text-sm font-bold text-[#718096] transition hover:border-[#21130D] hover:text-[#21130D]">
+            <Link href="/login" className="rounded-full border border-[#e2e8f0] px-5 py-2 text-sm font-bold text-[#718096] transition hover:bg-[#21130D] hover:text-[#fff]">
               Go to Login →
             </Link>
             {/* <Link href="/admin/login" className="rounded-full bg-[#21130D] px-5 py-2 text-sm font-black text-white shadow-[0_4px_14px_rgba(33,19,13,0.25)] transition hover:opacity-90">

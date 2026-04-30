@@ -1,6 +1,6 @@
 "use client";
 
-import React, { FormEvent, useState } from "react";
+import React, { FormEvent, useState, useRef, useEffect } from "react";
 import {
   Mail, User, ShieldCheck, Send, Info,
   CheckCircle2, AlertCircle, Loader2, ChevronDown,
@@ -30,6 +30,19 @@ export default function SendInvitePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success,      setSuccess]      = useState<{ email: string; tempPassword: string } | null>(null);
   const [error,        setError]        = useState<string | null>(null);
+  const [isRoleOpen,   setIsRoleOpen]   = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsRoleOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const needsClass    = role === "CLASS_MONITOR" || role === "STUDENT";
   const needsPosition = role === "COMMITTEE_MEMBER";
@@ -153,18 +166,51 @@ export default function SendInvitePage() {
                 <label className="ml-1 block text-[10px] font-black uppercase tracking-widest text-[var(--muted)]">
                   Assigned Role <span className="text-red-500">*</span>
                 </label>
-                <div className="group relative">
-                  <ShieldCheck className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--muted)] transition group-focus-within:text-[var(--accent)]" size={16} />
-                  <select
-                    value={role}
-                    onChange={(e) => setRole(e.target.value as UserRole)}
-                    className="w-full appearance-none rounded-xl border border-[var(--border)] bg-[var(--background)] py-3 pl-10 pr-10 text-sm font-bold outline-none transition focus:border-[var(--accent)] focus:bg-white focus:ring-4 focus:ring-[var(--accent)]/5 cursor-pointer"
+                <div className="group relative" ref={dropdownRef}>
+                  <ShieldCheck className={`pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 z-10 transition ${isRoleOpen ? "text-[var(--accent)]" : "text-[var(--muted)]"}`} size={16} />
+                  
+                  <button
+                    type="button"
+                    onClick={() => setIsRoleOpen(!isRoleOpen)}
+                    className={`flex w-full items-center justify-between rounded-xl border bg-[var(--background)] py-3 pl-10 pr-4 text-sm font-bold outline-none transition-all ${
+                      isRoleOpen 
+                        ? "border-[var(--accent)] bg-white ring-4 ring-[var(--accent)]/5" 
+                        : "border-[var(--border)] hover:border-[var(--accent)]/40"
+                    }`}
                   >
-                    {ROLE_OPTIONS.map((r) => (
-                      <option key={r.value} value={r.value}>{r.label}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--muted)]" size={14} />
+                    <span className={role ? "text-[var(--foreground)]" : "text-[var(--muted)]/40"}>
+                      {ROLE_OPTIONS.find(r => r.value === role)?.label || "Select Role"}
+                    </span>
+                    <ChevronDown className={`text-[var(--muted)] transition-transform duration-200 ${isRoleOpen ? "rotate-180 text-[var(--accent)]" : ""}`} size={14} />
+                  </button>
+
+                  {/* Custom Dropdown Menu */}
+                  {isRoleOpen && (
+                    <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-64 overflow-y-auto rounded-xl border border-[var(--border)] bg-white p-1.5 shadow-2xl shadow-[var(--accent)]/10 animate-fade-in">
+                      {ROLE_OPTIONS.map((r) => (
+                        <div
+                          key={r.value}
+                          onClick={() => {
+                            setRole(r.value);
+                            setIsRoleOpen(false);
+                          }}
+                          className={`group flex cursor-pointer flex-col rounded-lg px-3 py-2.5 transition-all ${
+                            role === r.value 
+                              ? "bg-[var(--accent)] text-white" 
+                              : "text-[var(--foreground)] hover:bg-[var(--accent)]/5"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-[13px] font-bold">{r.label}</span>
+                            {role === r.value && <CheckCircle2 size={12} className="text-white/80" />}
+                          </div>
+                          <p className={`mt-0.5 text-[10px] leading-tight ${role === r.value ? "text-white/70" : "text-[var(--muted)]"}`}>
+                            {r.description}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 {selectedRoleInfo && (
                   <p className="ml-1 text-[11px] font-bold text-[var(--muted)]">{selectedRoleInfo.description}</p>
