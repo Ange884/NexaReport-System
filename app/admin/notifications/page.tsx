@@ -15,10 +15,13 @@ const TYPE_CONFIG: Record<
   { icon: React.ReactNode; bg: string; color: string; label: string }
 > = {
   ISSUE_CREATED:   { icon: <Bell size={18} />,         bg: "bg-blue-50",    color: "text-blue-600",    label: "New Issue"     },
+  ISSUE_UPDATED:   { icon: <Info size={18} />,         bg: "bg-sky-50",     color: "text-sky-600",     label: "Updated"       },
   ISSUE_COMMENTED: { icon: <Info size={18} />,         bg: "bg-violet-50",  color: "text-violet-600",  label: "Comment"       },
   ISSUE_RESOLVED:  { icon: <CheckCircle2 size={18} />, bg: "bg-emerald-50", color: "text-emerald-600", label: "Resolved"      },
   ISSUE_ASSIGNED:  { icon: <AlertCircle size={18} />,  bg: "bg-amber-50",   color: "text-amber-600",   label: "Assigned"      },
   ISSUE_RESENT:    { icon: <RefreshCw size={18} />,    bg: "bg-orange-50",  color: "text-orange-600",  label: "Resent"        },
+  PRIORITY_OVERDUE: { icon: <AlertTriangle size={18} />, bg: "bg-rose-50",   color: "text-rose-600",    label: "Overdue"       },
+  PENDING_THRESHOLD_EXCEEDED: { icon: <AlertCircle size={18} />, bg: "bg-red-50", color: "text-red-600", label: "Threshold" },
   GENERAL:         { icon: <AlertTriangle size={18} />,bg: "bg-[#21130D]/10",color:"text-[#21130D]",   label: "General Alert" },
 };
 
