@@ -133,6 +133,38 @@ function ThreadModal({ issue, onClose }: { issue: IssueResponseDto; onClose: () 
   );
 }
 
+// ─── Delete Confirmation Modal ───────────────────────────────────────────────
+
+function DeleteConfirmModal({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
+  return (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="w-full max-w-sm scale-in-center rounded-3xl bg-white p-8 shadow-2xl">
+        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+          <Trash2 size={28} />
+        </div>
+        <h3 className="text-center text-xl font-black text-[var(--foreground)]">Delete Issue?</h3>
+        <p className="mt-2 text-center text-sm font-bold text-[var(--muted)] leading-relaxed">
+          Are you sure you want to delete this issue? This action is permanent and cannot be undone.
+        </p>
+        <div className="mt-8 flex flex-col gap-3">
+          <button
+            onClick={onConfirm}
+            className="w-full rounded-xl bg-red-600 py-3 text-sm font-black text-white shadow-lg shadow-red-200 transition hover:bg-red-700 active:scale-95"
+          >
+            Yes, Delete it
+          </button>
+          <button
+            onClick={onCancel}
+            className="w-full rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--muted)] transition hover:bg-[var(--background)] active:scale-95"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Issue Card ───────────────────────────────────────────────────────────────
 
 function IssueCard({
@@ -202,6 +234,7 @@ export default function MyIssuesPage() {
   const [status,   setStatus]   = useState<IssueStatus | "ALL">("ALL");
   const [priority, setPriority] = useState<IssuePriority | "ALL">("ALL");
   const [toast,    setToast]    = useState<{ msg: string; type: "error" | "success" } | null>(null);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   useEffect(() => {
     if (toast) {
@@ -232,7 +265,13 @@ export default function MyIssuesPage() {
       return;
     }
 
-    if (!confirm("Are you sure you want to delete this issue? This action cannot be undone.")) return;
+    setDeleteId(id);
+  }
+
+  async function confirmDelete() {
+    if (!deleteId) return;
+    const id = deleteId;
+    setDeleteId(null);
 
     try {
       await deleteIssue(id);
@@ -328,10 +367,12 @@ export default function MyIssuesPage() {
       )}
 
       {selected && <ThreadModal issue={selected} onClose={() => setSelected(null)} />}
+      
+      {deleteId && <DeleteConfirmModal onConfirm={confirmDelete} onCancel={() => setDeleteId(null)} />}
 
       {/* Toast Notification */}
       {toast && (
-        <div className={`fixed bottom-8 left-1/2 z-[100] flex -translate-x-1/2 items-center gap-3 rounded-2xl border px-6 py-4 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300 ${
+        <div className={`fixed top-8 left-1/2 z-[100] flex -translate-x-1/2 items-center gap-3 rounded-2xl border px-6 py-4 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300 ${
           toast.type === "error" 
             ? "border-red-200 bg-red-50 text-red-600" 
             : "border-emerald-200 bg-emerald-50 text-emerald-700"
