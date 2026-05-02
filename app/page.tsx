@@ -83,12 +83,12 @@ export default function LandingPage() {
           </div>
 
           <div className="hidden items-center gap-3 md:flex">
-            <Link href="/student/login" className="rounded-full border border-[#e2e8f0] px-5 py-2 text-sm font-bold text-[#718096] transition hover:border-[#21130D] hover:text-[#21130D]">
-              Student Login
+            <Link href="/login" className="rounded-full border border-[#e2e8f0] px-5 py-2 text-sm font-bold text-[#718096] transition hover:bg-[#21130D] hover:text-[#fff]">
+              Go to Login →
             </Link>
-            <Link href="/admin/login" className="rounded-full bg-[#21130D] px-5 py-2 text-sm font-black text-white shadow-[0_4px_14px_rgba(33,19,13,0.25)] transition hover:opacity-90">
-              Admin Portal →
-            </Link>
+            {/* <Link href="/admin/login" className="rounded-full bg-[#21130D] px-5 py-2 text-sm font-black text-white shadow-[0_4px_14px_rgba(33,19,13,0.25)] transition hover:opacity-90">
+              Admin Portal 
+            </Link> */}
           </div>
 
           <button onClick={() => setMenuOpen(!menuOpen)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#e2e8f0] text-[#718096] md:hidden">
@@ -105,8 +105,7 @@ export default function LandingPage() {
                 </a>
               ))}
               <div className="mt-2 flex flex-col gap-2 border-t border-[#e2e8f0] pt-4">
-                <Link href="/student/login" className="rounded-xl border border-[#e2e8f0] px-4 py-2.5 text-center text-sm font-bold text-[#1a202c]">Student Login</Link>
-                <Link href="/admin/login" className="rounded-xl bg-[#21130D] px-4 py-2.5 text-center text-sm font-black text-white">Admin Portal</Link>
+                <Link href="/login" className="rounded-xl border border-[#e2e8f0] px-4 py-2.5 text-center text-sm font-bold text-[#1a202c]">Student Login</Link>
               </div>
             </div>
           </div>
@@ -147,7 +146,7 @@ export default function LandingPage() {
             </p>
 
             <div className="flex flex-wrap items-center gap-4">
-              <Link href="/student/login" className="group flex items-center gap-2.5 rounded-full bg-[#21130D] px-7 py-3.5 text-[0.95rem] font-black text-white shadow-[0_8px_28px_rgba(33,19,13,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(33,19,13,0.35)]">
+              <Link href="/login" className="group flex items-center gap-2.5 rounded-full bg-[#21130D] px-7 py-3.5 text-[0.95rem] font-black text-white shadow-[0_8px_28px_rgba(33,19,13,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(33,19,13,0.35)]">
                 Get Started
                 <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
               </Link>
@@ -375,12 +374,9 @@ export default function LandingPage() {
             Join hundreds of students who already use NexaReport to get their issues heard and resolved. It takes less than a minute to get started.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
-            <Link href="/student/login" className="group flex items-center gap-2.5 rounded-full bg-white px-8 py-4 text-[0.95rem] font-black text-[#21130D] shadow-[0_8px_32px_rgba(255,255,255,0.15)] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_48px_rgba(255,255,255,0.2)]">
-              Student Login
+            <Link href="/login" className="group flex items-center gap-2.5 rounded-full bg-white px-8 py-4 text-[0.95rem] font-black text-[#21130D] shadow-[0_8px_32px_rgba(255,255,255,0.15)] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_48px_rgba(255,255,255,0.2)]">
+                 Student Login
               <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-            </Link>
-            <Link href="/admin/login" className="rounded-full border border-white/25 px-8 py-4 text-[0.95rem] font-bold text-white/70 transition hover:border-white/60 hover:text-white">
-              Admin Portal
             </Link>
           </div>
         </div>
@@ -401,8 +397,8 @@ export default function LandingPage() {
             © {new Date().getFullYear()} NexaReport. Built for students, by students.
           </p>
           <div className="flex items-center gap-6">
-            <Link href="/student/login" className="text-[0.75rem] font-bold text-[#718096] transition hover:text-[#21130D]">Student Login</Link>
-            <Link href="/admin/login" className="text-[0.75rem] font-bold text-[#718096] transition hover:text-[#21130D]">Admin</Link>
+            <Link href="/login" className="text-[0.75rem] font-bold text-[#718096] transition hover:text-[#21130D]">Login</Link>
+            {/* <Link href="/admin/login" className="text-[0.75rem] font-bold text-[#718096] transition hover:text-[#21130D]">Admin</Link> */}
           </div>
         </div>
       </footer>

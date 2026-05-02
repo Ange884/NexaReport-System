@@ -23,8 +23,10 @@ export type NotificationType =
   | "ISSUE_COMMENTED"
   | "ISSUE_RESOLVED"
   | "ISSUE_ASSIGNED"
+  | "ISSUE_RESENT"
   | "PRIORITY_OVERDUE"
-  | "PENDING_THRESHOLD_EXCEEDED";
+  | "PENDING_THRESHOLD_EXCEEDED"
+  | "GENERAL";
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
