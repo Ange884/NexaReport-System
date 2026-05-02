@@ -12,9 +12,9 @@ export const metadata: Metadata = {
   title: "Vexa — Student Issue Reporting System",
   description: "A fast, secure platform for students to report issues to staff. Your voice matters here.",
   icons: {
-    icon: "/icon.svg",
-    shortcut: "/icon.svg",
-    apple: "/icon.svg",
+    icon: "/nexa.png",
+    shortcut: "/nexa.png",
+    apple: "/nexa.png",
   },
 };
 

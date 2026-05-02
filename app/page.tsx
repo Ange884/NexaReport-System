@@ -6,6 +6,8 @@ import {
   ArrowRight, CheckCircle, Shield, Zap, Bell, FileText,
   Users, Lock, ChevronDown, Menu, X, Star, TrendingUp,
 } from "lucide-react";
+import { fetchPublicStats } from "@/app/lib/api";
+import type { PublicStatsResponse } from "@/app/lib/types";
 
 function useCounter(target: number, duration = 1800) {
   const [val, setVal] = useState(0);
@@ -55,8 +57,21 @@ const faqs = [
 export default function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const issues = useCounter(1240);
-  const resolved = useCounter(97);
+  
+  const [stats, setStats] = useState<PublicStatsResponse>({
+    totalIssues: 1240,
+    resolvedIssues: 1202,
+    resolvedPercentage: 97.0
+  });
+
+  useEffect(() => {
+    fetchPublicStats()
+      .then(setStats)
+      .catch(() => {}); // Fallback to defaults if API fails
+  }, []);
+
+  const issues = useCounter(stats.totalIssues);
+  const resolved = useCounter(Math.round(stats.resolvedPercentage));
   const days = useCounter(24, 1200);
 
   return (
@@ -309,8 +324,8 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
             {[
-              { value: "1,240+", label: "Issues Submitted" },
-              { value: "97%", label: "Resolution Rate" },
+              { value: `${stats.totalIssues.toLocaleString()}+`, label: "Issues Submitted" },
+              { value: `${Math.round(stats.resolvedPercentage)}%`, label: "Resolution Rate" },
               { value: "< 2.4d", label: "Avg. Resolution Time" },
               { value: "100%", label: "Data Privacy" },
             ].map((s) => (

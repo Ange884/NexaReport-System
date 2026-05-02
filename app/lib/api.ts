@@ -37,6 +37,7 @@ import type {
   InviteUserResult,
   UserResponse,
   MessageResponse,
+  PublicStatsResponse,
 } from "./types";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
@@ -409,6 +410,16 @@ export async function fetchIssuesByCategory(
  */
 export async function fetchBroadcastFeed(): Promise<IssueResponseDto[]> {
   return authorizedRequest<IssueResponseDto[]>("/api/issues/broadcast");
+}
+
+/**
+ * GET /api/issues/stats/public
+ * Public landing page statistics.
+ */
+export async function fetchPublicStats(): Promise<PublicStatsResponse> {
+  return request<PublicStatsResponse>("/api/issues/stats/public", {
+    skipAuth: true,
+  });
 }
 
 /**

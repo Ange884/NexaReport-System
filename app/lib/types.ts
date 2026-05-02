@@ -162,6 +162,12 @@ export interface PriorityUnresolvedCountResponse {
   count: number;
 }
 
+export interface PublicStatsResponse {
+  totalIssues: number;
+  resolvedIssues: number;
+  resolvedPercentage: number;
+}
+
 // ─── Notifications ────────────────────────────────────────────────────────────
 
 export interface NotificationResponseDto {
