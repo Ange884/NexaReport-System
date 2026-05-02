@@ -28,7 +28,7 @@ export default function SendInvitePage() {
   const [position,  setPosition]  = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [success,      setSuccess]      = useState<{ email: string; tempPassword: string } | null>(null);
+  const [success,      setSuccess]      = useState<{ email: string; tempPassword: string; isResend?: boolean } | null>(null);
   const [error,        setError]        = useState<string | null>(null);
   const [isRoleOpen,   setIsRoleOpen]   = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -72,10 +72,22 @@ export default function SendInvitePage() {
         email,
         fullNames,
         role,
-        ...(needsClass    ? { className }           : {}),
-        ...(needsPosition ? { committeePosition: position } : {}),
+        ...(needsClass    ? { className }                    : {}),
+        ...(needsPosition ? { committeePosition: position }  : {}),
       });
-      setSuccess({ email: result.email, tempPassword: result.temporaryPassword });
+
+      if (!result.success) {
+        // Already active — hard error
+        setError(result.message || "Could not send invitation.");
+        return;
+      }
+
+      // Success (new invite or resend)
+      setSuccess({
+        email:       result.email        ?? email,
+        tempPassword: result.temporaryPassword ?? "—",
+        isResend:    result.message?.toLowerCase().includes("resent"),
+      });
       setFullNames(""); setEmail(""); setClassName(""); setPosition("");
       setRole("TEACHER");
     } catch (err: unknown) {
@@ -101,17 +113,26 @@ export default function SendInvitePage() {
 
             {/* Success banner */}
             {success && (
-              <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 animate-fade-in">
+              <div className={`mb-6 rounded-xl border p-4 animate-fade-in ${success.isResend ? "border-amber-200 bg-amber-50" : "border-emerald-200 bg-emerald-50"}`}>
                 <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-                  <p className="text-sm font-black text-emerald-700">Invitation sent to {success.email}</p>
+                  <CheckCircle2 size={16} className={success.isResend ? "text-amber-600 shrink-0" : "text-emerald-600 shrink-0"} />
+                  <p className={`text-sm font-black ${success.isResend ? "text-amber-700" : "text-emerald-700"}`}>
+                    {success.isResend
+                      ? `Invitation resent to ${success.email}`
+                      : `Invitation sent to ${success.email}`}
+                  </p>
                 </div>
-                <p className="text-xs font-bold text-emerald-600">
+                <p className={`text-xs font-bold ${success.isResend ? "text-amber-600" : "text-emerald-600"}`}>
+                  {success.isResend && (
+                    <span className="block mb-1 text-amber-700">
+                      This user was previously invited but hadn&apos;t activated their account. A new password has been generated.
+                    </span>
+                  )}
                   Temporary password:{" "}
-                  <code className="rounded bg-emerald-100 px-1.5 py-0.5 font-mono font-black tracking-wider">
+                  <code className={`rounded px-1.5 py-0.5 font-mono font-black tracking-wider ${success.isResend ? "bg-amber-100" : "bg-emerald-100"}`}>
                     {success.tempPassword}
                   </code>
-                  {" "}— share this securely with the new member.
+                  {" "}— share this securely with the member.
                 </p>
               </div>
             )}

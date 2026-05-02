@@ -189,10 +189,12 @@ export interface InviteUserRequest {
 }
 
 export interface InviteUserResult {
-  userId: number;
-  email: string;
-  temporaryPassword: string;
+  success: boolean;
   message: string;
+  userId: number;
+  canResend: boolean;
+  email: string | null;
+  temporaryPassword: string | null;
 }
 
 export interface MessageResponse {
