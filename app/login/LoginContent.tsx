@@ -95,15 +95,13 @@ export default function StudentLoginContent() {
 
           <div className="mb-6 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#21130D] text-white shadow-lg">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-6 w-6">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-              </svg>
+               <img src="/nexa.png" alt="Logo" className="h-10 w-10" />
             </div>
             <span className="text-[1.4rem] font-black tracking-[0.08em] text-[#21130D]">NEXA</span>
           </div>
 
           <h2 className="text-center text-2xl font-extrabold tracking-tight text-[#21130D]">Sign In</h2>
-          <p className="mt-1 text-center text-sm text-[#718096]">Access your student portal.</p>
+          <p className="mt-1 text-center text-sm text-[#718096]">Access your portal.</p>
 
           {error && (
             <div className="mt-6 flex items-start gap-3 rounded-xl bg-red-50 p-4 text-xs font-bold text-red-600">
@@ -120,7 +118,7 @@ export default function StudentLoginContent() {
                 <input
                   id="student-email"
                   type="email"
-                  placeholder="student@university.edu"
+                  placeholder="nziza@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}

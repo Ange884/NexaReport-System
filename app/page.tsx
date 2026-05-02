@@ -67,9 +67,7 @@ export default function LandingPage() {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#21130D] shadow-[0_4px_12px_rgba(33,19,13,0.3)]">
-              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" className="h-5 w-5">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-              </svg>
+              <img src="/nexa.png" alt="Logo" className="h-10 w-10" />
             </div>
             <span className="text-lg font-black tracking-tight text-[#21130D]">NEXAREPORT</span>
           </Link>
@@ -387,9 +385,7 @@ export default function LandingPage() {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 md:flex-row">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#21130D]">
-              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" className="h-4 w-4">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-              </svg>
+              <img src="/nexa.png" alt="Logo" className="h-10 w-10" />
             </div>
             <span className="text-sm font-black tracking-tight text-[#21130D]">NEXAREPORT</span>
           </div>

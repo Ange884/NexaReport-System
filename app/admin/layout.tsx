@@ -164,9 +164,7 @@ export default function AdminLayout({
         {/* Brand */}
         <div className="mb-10 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent)] text-white shadow-lg">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-6 w-6">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-            </svg>
+              <img src="/nexa.png" alt="Logo" className="h-10 w-10" />
           </div>
           <span className="text-xl font-black tracking-tight text-[var(--accent)]">
             NEXAREPORT
