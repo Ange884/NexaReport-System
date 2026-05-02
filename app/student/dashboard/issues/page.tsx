@@ -201,6 +201,14 @@ export default function MyIssuesPage() {
   const [keyword,  setKeyword]  = useState("");
   const [status,   setStatus]   = useState<IssueStatus | "ALL">("ALL");
   const [priority, setPriority] = useState<IssuePriority | "ALL">("ALL");
+  const [toast,    setToast]    = useState<{ msg: string; type: "error" | "success" } | null>(null);
+
+  useEffect(() => {
+    if (toast) {
+      const t = setTimeout(() => setToast(null), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [toast]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -216,13 +224,22 @@ export default function MyIssuesPage() {
   }, []);
 
   async function handleDelete(id: number) {
+    const issue = issues.find((i) => i.id === id);
+    if (!issue) return;
+
+    if (issue.status !== "PENDING") {
+      setToast({ msg: "You can't delete an issue that is already In Progress or Resolved.", type: "error" });
+      return;
+    }
+
     if (!confirm("Are you sure you want to delete this issue? This action cannot be undone.")) return;
 
     try {
       await deleteIssue(id);
       setIssues((prev) => prev.filter((i) => i.id !== id));
+      setToast({ msg: "Issue deleted successfully.", type: "success" });
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed to delete issue.");
+      setToast({ msg: e instanceof Error ? e.message : "Failed to delete issue.", type: "error" });
     }
   }
 
@@ -311,6 +328,21 @@ export default function MyIssuesPage() {
       )}
 
       {selected && <ThreadModal issue={selected} onClose={() => setSelected(null)} />}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed bottom-8 left-1/2 z-[100] flex -translate-x-1/2 items-center gap-3 rounded-2xl border px-6 py-4 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300 ${
+          toast.type === "error" 
+            ? "border-red-200 bg-red-50 text-red-600" 
+            : "border-emerald-200 bg-emerald-50 text-emerald-700"
+        }`}>
+          {toast.type === "error" ? <AlertCircle size={20} /> : <CheckCircle2 size={20} />}
+          <p className="text-sm font-black tracking-tight">{toast.msg}</p>
+          <button onClick={() => setToast(null)} className="ml-4 rounded-lg p-1 hover:bg-black/5">
+            <X size={16} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

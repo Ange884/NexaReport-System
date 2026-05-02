@@ -59,9 +59,9 @@ export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   
   const [stats, setStats] = useState<PublicStatsResponse>({
-    totalIssues: 1240,
-    resolvedIssues: 1202,
-    resolvedPercentage: 97.0
+    totalIssues: 0,
+    resolvedIssues: 0,
+    resolvedPercentage: 0
   });
 
   useEffect(() => {
