@@ -84,7 +84,7 @@ export default function AdminProfilePage() {
             <span className={`mt-2 inline-block rounded-full px-3 py-0.5 text-[10px] font-black uppercase tracking-widest ${
               user.status === "ACTIVE"
                 ? "bg-emerald-100 text-emerald-700"
-                : user.status === "PENDING"
+                : user.status === "INVITED"
                 ? "bg-amber-100 text-amber-700"
                 : "bg-gray-100 text-gray-600"
             }`}>
