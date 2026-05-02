@@ -67,9 +67,7 @@ function AuthLoadingSkeleton() {
     <div className="flex h-screen items-center justify-center bg-[var(--background)]">
       <div className="flex flex-col items-center gap-4">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#21130D] text-white shadow-lg">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-7 w-7">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-          </svg>
+          <img src="/nexa.png" alt="Logo" className="h-10 w-10" />
         </div>
         <div className="h-1 w-48 overflow-hidden rounded-full bg-[#e2e8f0]">
           <div className="h-full animate-pulse rounded-full bg-[#21130D] w-3/4" />
@@ -129,7 +127,7 @@ function StudentLayoutContent({ children }: { children: React.ReactNode }) {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent)] text-white shadow-lg">
              <img src="/nexa.png" alt="Logo" className="h-10 w-10" />
           </div>
-          <span className="text-xl font-black tracking-tight text-[var(--accent)]">NEXAREPORT</span>
+          <span className="text-xl font-black tracking-tight text-[var(--accent)]">VEXA</span>
         </div>
 
         <nav className="flex flex-1 flex-col gap-2">
@@ -180,7 +178,7 @@ function StudentLayoutContent({ children }: { children: React.ReactNode }) {
       )}
       <aside className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-[var(--border)] bg-white p-6 transition-transform duration-300 md:hidden ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="mb-8 flex items-center justify-between">
-          <span className="text-lg font-black tracking-tight text-[var(--accent)]">NEXAREPORT</span>
+          <span className="text-lg font-black tracking-tight text-[var(--accent)]">VEXA</span>
           <button onClick={() => setMobileMenuOpen(false)} className="rounded-lg p-1 text-[var(--muted)]">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>

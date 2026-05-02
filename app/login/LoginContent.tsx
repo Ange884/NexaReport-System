@@ -97,7 +97,7 @@ export default function StudentLoginContent() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#21130D] text-white shadow-lg">
                <img src="/nexa.png" alt="Logo" className="h-10 w-10" />
             </div>
-            <span className="text-[1.4rem] font-black tracking-[0.08em] text-[#21130D]">NEXA</span>
+            <span className="text-[1.4rem] font-black text-[#21130D]">VEXA</span>
           </div>
 
           <h2 className="text-center text-2xl font-extrabold tracking-tight text-[#21130D]">Sign In</h2>

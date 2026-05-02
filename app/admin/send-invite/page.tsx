@@ -17,7 +17,7 @@ const ROLE_OPTIONS: { value: UserRole; label: string; description: string }[] = 
   { value: "ADMINISTRATIVE_STAFF", label: "Administrative Staff", description: "Internal operations and task execution." },
   { value: "COMMITTEE_MEMBER",  label: "Committee Member",   description: "Committee-level issue submission." },
   { value: "CLASS_MONITOR",     label: "Class Monitor",      description: "Class-level issue reporting." },
-  { value: "STUDENT",           label: "Student",            description: "General student issue submission only." },
+ 
 ];
 
 export default function SendInvitePage() {

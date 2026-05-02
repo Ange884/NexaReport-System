@@ -69,7 +69,7 @@ export default function LandingPage() {
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#21130D] shadow-[0_4px_12px_rgba(33,19,13,0.3)]">
               <img src="/nexa.png" alt="Logo" className="h-10 w-10" />
             </div>
-            <span className="text-lg font-black tracking-tight text-[#21130D]">NEXAREPORT</span>
+            <span className="text-lg font-black tracking-tight text-[#21130D]">VEXA</span>
           </Link>
 
           <div className="hidden items-center gap-8 md:flex">
@@ -140,7 +140,7 @@ export default function LandingPage() {
             </h1>
 
             <p className="mb-10 max-w-[480px] text-[1.1rem] font-medium leading-relaxed text-[#718096]">
-              NexaReport is the fast, secure, and transparent platform that connects students directly to the staff who can fix things. Submit an issue in under 60 seconds — we handle the rest.
+               Vexa is the fast, secure, and transparent platform that connects students directly to the staff who can fix things. Submit an issue in under 60 seconds — we handle the rest.
             </p>
 
             <div className="flex flex-wrap items-center gap-4">
@@ -172,7 +172,7 @@ export default function LandingPage() {
                 <span className="h-3 w-3 rounded-full bg-red-400" />
                 <span className="h-3 w-3 rounded-full bg-amber-400" />
                 <span className="h-3 w-3 rounded-full bg-emerald-400" />
-                <span className="ml-3 text-[0.7rem] font-bold text-[#a0aec0]">NexaReport — Student Portal</span>
+                <span className="ml-3 text-[0.7rem] font-bold text-[#a0aec0]">VEXA — Student Portal</span>
                 <span className="ml-auto flex items-center gap-1.5 text-[0.65rem] font-black text-emerald-500">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                   Live
@@ -369,7 +369,7 @@ export default function LandingPage() {
             <span className="font-black italic text-white/80">Start reporting.</span>
           </h2>
           <p className="mx-auto mb-10 max-w-lg text-[1rem] font-medium leading-relaxed text-white/60">
-            Join hundreds of students who already use NexaReport to get their issues heard and resolved. It takes less than a minute to get started.
+            Join hundreds of students who already use Vexa to get their issues heard and resolved. It takes less than a minute to get started.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Link href="/login" className="group flex items-center gap-2.5 rounded-full bg-white px-8 py-4 text-[0.95rem] font-black text-[#21130D] shadow-[0_8px_32px_rgba(255,255,255,0.15)] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_48px_rgba(255,255,255,0.2)]">
@@ -387,10 +387,10 @@ export default function LandingPage() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#21130D]">
               <img src="/nexa.png" alt="Logo" className="h-10 w-10" />
             </div>
-            <span className="text-sm font-black tracking-tight text-[#21130D]">NEXAREPORT</span>
+            <span className="text-sm font-black tracking-tight text-[#21130D]">VEXA</span>
           </div>
           <p className="text-[0.75rem] font-bold text-[#a0aec0]">
-            © {new Date().getFullYear()} NexaReport. Built for students, by students.
+            © {new Date().getFullYear()} Vexa. Built for students, by students.
           </p>
           <div className="flex items-center gap-6">
             <Link href="/login" className="text-[0.75rem] font-bold text-[#718096] transition hover:text-[#21130D]">Login</Link>
