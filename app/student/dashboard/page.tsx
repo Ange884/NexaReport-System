@@ -3,10 +3,10 @@
 import React, { useEffect, useState, useCallback } from "react";
 import {
   Clock, AlertCircle, CheckCircle2, FileText,
-  ArrowUpRight, Loader2, RefreshCw, MessageCircle, X,
+  ArrowUpRight, Loader2, RefreshCw, MessageCircle, X, Trash2,
 } from "lucide-react";
 import Link from "next/link";
-import { fetchMyIssues, fetchIssueThread } from "@/app/lib/api";
+import { fetchMyIssues, fetchIssueThread, deleteIssue } from "@/app/lib/api";
 import type {
   IssueDashboardResponse, IssueResponseDto, IssueStatus, IssueThreadResponse,
 } from "@/app/lib/types";
@@ -160,6 +160,25 @@ export default function StudentDashboard() {
     }
   }, []);
 
+  async function handleDelete(id: number) {
+    if (!confirm("Are you sure you want to delete this issue? This action cannot be undone.")) return;
+
+    try {
+      await deleteIssue(id);
+      setData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          issues: prev.issues.filter((i) => i.id !== id),
+          total: prev.total - 1,
+          // Note: we could also update status counts but the list is most important
+        };
+      });
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to delete issue.");
+    }
+  }
+
   useEffect(() => { load(); }, [load]);
 
   const kpiCards = [
@@ -272,12 +291,21 @@ export default function StudentDashboard() {
                       {new Date(issue.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                     </td>
                     <td className="py-4 text-right">
-                      <button
-                        onClick={() => setSelectedIssue(issue)}
-                        className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-1 text-[10px] font-bold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent)] ml-auto"
-                      >
-                        <MessageCircle size={12} /> Comments
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => setSelectedIssue(issue)}
+                          className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-1 text-[10px] font-bold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                        >
+                          <MessageCircle size={12} /> Comments
+                        </button>
+                        <button
+                          onClick={() => handleDelete(issue.id)}
+                          className="group flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] transition hover:border-[var(--accent)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] active:scale-95"
+                          title="Delete Issue"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

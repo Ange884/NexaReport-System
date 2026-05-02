@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ChevronDown, FolderOpen, RefreshCw, AlertCircle,
-  Filter, MessageCircle, X, Loader2, CheckCircle2,
+  Filter, MessageCircle, X, Loader2, CheckCircle2, Trash2,
 } from "lucide-react";
-import { fetchMyIssues, fetchIssueThread } from "@/app/lib/api";
+import { fetchMyIssues, fetchIssueThread, deleteIssue } from "@/app/lib/api";
 import type {
   IssueResponseDto, IssueStatus, IssuePriority, IssueThreadResponse,
 } from "@/app/lib/types";
@@ -135,7 +135,15 @@ function ThreadModal({ issue, onClose }: { issue: IssueResponseDto; onClose: () 
 
 // ─── Issue Card ───────────────────────────────────────────────────────────────
 
-function IssueCard({ issue, onViewThread }: { issue: IssueResponseDto; onViewThread: (i: IssueResponseDto) => void }) {
+function IssueCard({
+  issue,
+  onViewThread,
+  onDelete,
+}: {
+  issue: IssueResponseDto;
+  onViewThread: (i: IssueResponseDto) => void;
+  onDelete: (id: number) => void;
+}) {
   return (
     <article className="flex flex-col gap-3 rounded-2xl border border-[var(--border)] bg-white p-5 shadow-sm transition hover:shadow-md">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -169,6 +177,13 @@ function IssueCard({ issue, onViewThread }: { issue: IssueResponseDto; onViewThr
           >
             <MessageCircle size={13} /> Comments
           </button>
+          <button
+            onClick={() => onDelete(issue.id)}
+            className="group flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] transition hover:border-[var(--accent)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] active:scale-95"
+            title="Delete Issue"
+          >
+            <Trash2 size={14} />
+          </button>
         </div>
       </div>
     </article>
@@ -199,6 +214,17 @@ export default function MyIssuesPage() {
       setLoading(false);
     }
   }, []);
+
+  async function handleDelete(id: number) {
+    if (!confirm("Are you sure you want to delete this issue? This action cannot be undone.")) return;
+
+    try {
+      await deleteIssue(id);
+      setIssues((prev) => prev.filter((i) => i.id !== id));
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Failed to delete issue.");
+    }
+  }
 
   useEffect(() => { load(); }, [load]);
 
@@ -279,7 +305,7 @@ export default function MyIssuesPage() {
       {!loading && filtered.length > 0 && (
         <div className="flex flex-col gap-4">
           {filtered.map((issue) => (
-            <IssueCard key={issue.id} issue={issue} onViewThread={setSelected} />
+            <IssueCard key={issue.id} issue={issue} onViewThread={setSelected} onDelete={handleDelete} />
           ))}
         </div>
       )}

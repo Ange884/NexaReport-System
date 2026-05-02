@@ -459,6 +459,16 @@ export async function assignIssue(
   });
 }
 
+/**
+ * DELETE /api/issues/:id
+ * Deletes an issue.
+ */
+export async function deleteIssue(id: number): Promise<MessageResponse> {
+  return authorizedRequest<MessageResponse>(`/api/issues/${id}`, {
+    method: "DELETE",
+  });
+}
+
 // ─── Notification endpoints ───────────────────────────────────────────────────
 
 /**
