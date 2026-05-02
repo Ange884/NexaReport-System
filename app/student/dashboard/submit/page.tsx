@@ -83,12 +83,14 @@ export default function SubmitIssue() {
         category,
         priority: priority as IssuePriority,
         targetType,
+        // Only include targeting fields relevant to the chosen type
         ...(targetType === "ROLE" && targetRole
           ? { targetRole: targetRole as UserRole }
           : {}),
         ...(targetType === "USER" && selectedUser
           ? { targetUserId: selectedUser.id }
           : {}),
+        // targetType === "ALL" → no extra fields
       });
       setSuccess(true);
       setTimeout(() => { window.location.href = "/student/dashboard/issues"; }, 1500);
@@ -187,7 +189,7 @@ export default function SubmitIssue() {
               {([
                 { value: "ROLE",      label: "A Role",        desc: "All users with a specific role" },
                 { value: "USER",      label: "Specific User", desc: "Pick one person by name"        },
-                { value: "BROADCAST", label: "Everyone",      desc: "Public broadcast to all"        },
+                { value: "ALL",       label: "Everyone",      desc: "Public broadcast to all"        },
               ] as { value: IssueTargetType; label: string; desc: string }[]).map((opt) => (
                 <button
                   key={opt.value} type="button"

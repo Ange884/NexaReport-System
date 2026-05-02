@@ -69,9 +69,9 @@ function isTokenLikelyValid(token: string): boolean {
   }
 }
 
-// ─── Middleware ───────────────────────────────────────────────────────────────
+// ─── Proxy (route protection) ────────────────────────────────────────────────
 
-export function middleware(req: NextRequest): NextResponse {
+export function proxy(req: NextRequest): NextResponse {
   const { pathname } = req.nextUrl;
   const token = getTokenFromRequest(req);
   const hasValidToken = token ? isTokenLikelyValid(token) : false;

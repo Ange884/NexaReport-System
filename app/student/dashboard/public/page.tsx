@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Sparkles, ChevronDown, Shield, ShieldCheck, RefreshCw, AlertCircle } from "lucide-react";
 import { fetchBroadcastFeed } from "@/app/lib/api";
 import type { IssueResponseDto, IssueStatus, IssuePriority } from "@/app/lib/types";
+import IssueDetailModal from "@/app/components/IssueDetailModal";
 
 // ─── Badge helpers ────────────────────────────────────────────────────────────
 
@@ -41,9 +42,12 @@ function fmt(date: string) {
 
 // ─── Issue Card ───────────────────────────────────────────────────────────────
 
-function BroadcastCard({ issue }: { issue: IssueResponseDto }) {
+function BroadcastCard({ issue, onClick }: { issue: IssueResponseDto; onClick: () => void }) {
   return (
-    <article className="flex flex-col gap-3 rounded-2xl border border-[var(--border)] bg-white p-5 shadow-sm transition hover:shadow-md">
+    <article 
+      onClick={onClick}
+      className="flex flex-col gap-3 rounded-2xl border border-[var(--border)] bg-white p-5 shadow-sm transition hover:shadow-md cursor-pointer hover:border-[#21130D]/20"
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <h3 className="text-[15px] font-black text-[var(--foreground)] leading-snug">{issue.title}</h3>
@@ -76,6 +80,7 @@ export default function PublicFeed() {
   const [issues,  setIssues]  = useState<IssueResponseDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState<string | null>(null);
+  const [selectedIssueId, setSelectedIssueId] = useState<number | null>(null);
 
   const [filterCategory, setFilterCategory] = useState("ALL");
   const [filterStatus,   setFilterStatus]   = useState<IssueStatus | "ALL">("ALL");
@@ -265,7 +270,7 @@ export default function PublicFeed() {
         {/* List */}
         {!loading && filtered.length > 0 && (
           <div className="mt-6 flex flex-col gap-4">
-            {filtered.map((issue) => <BroadcastCard key={issue.id} issue={issue} />)}
+            {filtered.map((issue) => <BroadcastCard key={issue.id} issue={issue} onClick={() => setSelectedIssueId(issue.id)} />)}
           </div>
         )}
       </section>
@@ -282,6 +287,13 @@ export default function PublicFeed() {
           </p>
         </div>
       </div>
+
+      {selectedIssueId && (
+        <IssueDetailModal 
+          issueId={selectedIssueId} 
+          onClose={() => setSelectedIssueId(null)} 
+        />
+      )}
     </div>
   );
 }

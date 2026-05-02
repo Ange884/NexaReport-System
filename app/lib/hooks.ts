@@ -95,21 +95,28 @@ export function useAuth(): AuthState {
   }, [refreshUser]);
 
   const logout = useCallback(async () => {
-    // Capture role synchronously BEFORE anything async or session clearing
-    const role = getUserRole();
-    const destination = role && ["ADMIN","TEACHER","NURSE","ADMINISTRATIVE_STAFF"].includes(role)
-      ? "/admin/login"
-      : "/student/login";
-
+    // Determine destination synchronously from localStorage before anything else
+    let destination = "/student/login";
     try {
-      await logoutUser();
-    } catch {
-      // Always proceed with client-side logout even if backend call fails
-    } finally {
-      clearSession();
-      setUser(null);
-      window.location.href = destination;
-    }
+      const raw = localStorage.getItem("nexa_user");
+      if (raw) {
+        const parsed = JSON.parse(raw) as { role?: string };
+        const adminRoles = ["ADMIN", "TEACHER", "NURSE", "ADMINISTRATIVE_STAFF"];
+        if (parsed.role && adminRoles.includes(parsed.role)) {
+          destination = "/admin/login";
+        }
+      }
+    } catch { /* fallback to student login */ }
+
+    // Clear session immediately — don't wait for backend
+    clearSession();
+    setUser(null);
+
+    // Fire backend logout in background (don't await — we're already navigating)
+    logoutUser().catch(() => {});
+
+    // Hard redirect to landing page
+    window.location.href = "/";
   }, []);
 
   return {

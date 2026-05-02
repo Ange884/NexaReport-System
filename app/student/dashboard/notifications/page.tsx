@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useNotificationContext } from "@/app/lib/NotificationContext";
 import type { NotificationType, NotificationResponseDto } from "@/app/lib/types";
+import IssueDetailModal from "@/app/components/IssueDetailModal";
 
 // ─── Icon & colour per notification type ─────────────────────────────────────
 
@@ -32,8 +33,14 @@ function fmt(dateStr: string) {
   return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
+function extractIssueId(msg: string): number | null {
+  const match = msg.match(/#(\d+)/);
+  return match ? parseInt(match[1], 10) : null;
+}
+
 export default function NotificationsPage() {
   const [activeTab, setActiveTab] = useState<"all" | "unread">("all");
+  const [selectedIssueId, setSelectedIssueId] = useState<number | null>(null);
   const {
     notifications,
     unreadCount,
@@ -122,7 +129,11 @@ export default function NotificationsPage() {
             return (
               <div
                 key={n.id}
-                onClick={() => !n.isRead && markRead(n.id)}
+                onClick={() => {
+                  const id = extractIssueId(n.message);
+                  if (id) setSelectedIssueId(id);
+                  if (!n.isRead) markRead(n.id);
+                }}
                 className={`group flex cursor-pointer items-center justify-between rounded-2xl border p-5 transition-all hover:shadow-md ${
                   n.isRead
                     ? "border-transparent bg-[var(--background)]/50 opacity-75"
@@ -162,6 +173,13 @@ export default function NotificationsPage() {
           })
         )}
       </div>
+
+      {selectedIssueId && (
+        <IssueDetailModal 
+          issueId={selectedIssueId} 
+          onClose={() => setSelectedIssueId(null)} 
+        />
+      )}
     </section>
   );
 }

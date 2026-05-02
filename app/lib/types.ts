@@ -90,16 +90,21 @@ export interface IssueDashboardResponse {
 
 export interface CommentResponseDto {
   id: number;
-  content: string;
+  issueId: number;
+  message: string;
+  createdById: number;
+  createdByEmail: string;
+  privateToCreator: boolean;
   createdAt: string;
-  authorEmail: string;
-  authorRole: UserRole;
 }
 
 export interface IssueActivityResponseDto {
   id: number;
-  action: string;
-  performedByEmail: string;
+  issueId: number;
+  message: string;
+  respondedById: number;
+  respondedByEmail: string;
+  type: "COMMENT" | "RESOLVED";
   createdAt: string;
 }
 
@@ -135,7 +140,7 @@ export interface IssueResolveRequest {
 }
 
 export interface AssignIssueRequest {
-  assigneeId: number;
+  assignedUserId: number;
 }
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────

@@ -10,10 +10,11 @@ import {
 import ActivityCalendar from "./components/ActivityCalendar";
 import { useDashboard } from "@/app/lib/hooks";
 import { useNotificationContext } from "@/app/lib/NotificationContext";
-import { commentOnIssue, resolveIssue, fetchBroadcastFeed, fetchSystemActivity, type SystemActivityItem } from "@/app/lib/api";
+import { commentOnIssue, resolveIssue, fetchBroadcastFeed, fetchSystemActivity, fetchIssueThread, type SystemActivityItem } from "@/app/lib/api";
 import type {
-  IssueResponseDto, IssuePriority, IssueStatus, NotificationResponseDto,
+  IssueResponseDto, IssuePriority, IssueStatus, NotificationResponseDto, IssueThreadResponse,
 } from "@/app/lib/types";
+import ManageIssueModal from "@/app/components/ManageIssueModal";
 
 // ─── Priority / Status helpers ────────────────────────────────────────────────
 
@@ -39,19 +40,33 @@ interface ManageModalProps {
 }
 
 function ManageModal({ issue, onClose, onSuccess }: ManageModalProps) {
-  const [tab, setTab]         = useState<"comment" | "resolve">("comment");
+  const defaultTab = issue.status === "PENDING" ? "comment" : "view_comments";
+  const [tab, setTab]         = useState<"comment" | "resolve" | "view_comments">(defaultTab);
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState<string | null>(null);
 
+  const [thread, setThread] = useState<IssueThreadResponse | null>(null);
+  const [threadLoading, setThreadLoading] = useState(false);
+
+  React.useEffect(() => {
+    if (tab === "view_comments" && !thread && !threadLoading) {
+      setThreadLoading(true);
+      fetchIssueThread(issue.id)
+        .then(setThread)
+        .catch(() => setError("Failed to load comments"))
+        .finally(() => setThreadLoading(false));
+    }
+  }, [tab, issue.id, thread, threadLoading]);
+
   const handleSubmit = useCallback(async () => {
-    if (!content.trim()) return;
+    if (!content.trim() || tab === "view_comments") return;
     setLoading(true);
     setError(null);
     try {
       if (tab === "comment") {
         await commentOnIssue(issue.id, { message: content });
-      } else {
+      } else if (tab === "resolve") {
         await resolveIssue(issue.id, { resolutionMessage: content });
       }
       onSuccess();
@@ -65,9 +80,9 @@ function ManageModal({ issue, onClose, onSuccess }: ManageModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl">
+      <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-[var(--border)] p-6">
+        <div className="flex items-start justify-between border-b border-[var(--border)] p-6 shrink-0">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">
               Issue #{issue.id} &bull; {issue.category}
@@ -82,7 +97,7 @@ function ManageModal({ issue, onClose, onSuccess }: ManageModalProps) {
         </div>
 
         {/* Issue info bar */}
-        <div className="flex items-center gap-3 border-b border-[var(--border)] px-6 py-3">
+        <div className="flex items-center gap-3 border-b border-[var(--border)] px-6 py-3 shrink-0">
           <span className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${PRIORITY_BADGE[issue.priority]}`}>
             {issue.priority}
           </span>
@@ -95,14 +110,20 @@ function ManageModal({ issue, onClose, onSuccess }: ManageModalProps) {
         </div>
 
         {/* Description */}
-        <div className="px-6 pt-4 pb-2">
+        <div className="px-6 pt-4 pb-2 shrink-0">
           <p className="text-sm text-[var(--muted)] leading-relaxed italic">
             &ldquo;{issue.description || issue.title}&rdquo;
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 px-6 pt-3">
+        <div className="flex gap-2 px-6 pt-3 shrink-0">
+          <button
+            onClick={() => setTab("view_comments")}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${tab === "view_comments" ? "bg-[var(--accent)] text-white" : "text-[var(--muted)] hover:bg-[var(--background)]"}`}
+          >
+            <ListChecks size={13} /> View Comments
+          </button>
           <button
             onClick={() => setTab("comment")}
             className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${tab === "comment" ? "bg-[var(--accent)] text-white" : "text-[var(--muted)] hover:bg-[var(--background)]"}`}
@@ -119,30 +140,58 @@ function ManageModal({ issue, onClose, onSuccess }: ManageModalProps) {
           )}
         </div>
 
-        {/* Text area */}
-        <div className="px-6 pb-2 pt-3">
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows={4}
-            placeholder={tab === "comment" ? "Write your comment or action plan..." : "Describe how this issue was resolved..."}
-            className="w-full rounded-xl border border-[var(--border)] p-3 text-sm font-medium outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[#21130D]/10"
-          />
+        {/* Content Area */}
+        <div className="px-6 pb-2 pt-3 overflow-y-auto">
+          {tab === "view_comments" ? (
+            <div className="min-h-[120px]">
+              {threadLoading ? (
+                <div className="flex items-center justify-center h-24">
+                  <Loader2 size={20} className="animate-spin text-[var(--muted)]" />
+                </div>
+              ) : thread?.comments && thread.comments.length > 0 ? (
+                <div className="space-y-3">
+                  {thread.comments.map((c) => (
+                    <div key={c.id} className="rounded-xl bg-[var(--background)] p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] font-bold text-[var(--foreground)]">{c.createdByEmail}</span>
+                        <span className="text-[9px] font-medium text-[var(--muted)]">{new Date(c.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      <p className="text-xs text-[var(--muted)]">{c.message}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-24 text-xs font-bold text-[var(--muted)]">
+                  No comments yet.
+                </div>
+              )}
+            </div>
+          ) : (
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              rows={4}
+              placeholder={tab === "comment" ? "Write your comment or action plan..." : "Describe how this issue was resolved..."}
+              className="w-full rounded-xl border border-[var(--border)] p-3 text-sm font-medium outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[#21130D]/10 shrink-0"
+            />
+          )}
           {error && <p className="mt-1 text-xs font-bold text-red-500">{error}</p>}
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 border-t border-[var(--border)] p-6 pt-4">
-          <button
-            onClick={handleSubmit}
-            disabled={loading || !content.trim()}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition disabled:opacity-50 ${tab === "resolve" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-[var(--accent)] hover:opacity-90"}`}
-          >
-            {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={14} />}
-            {loading ? "Submitting…" : tab === "comment" ? "Post Comment" : "Mark as Resolved"}
-          </button>
-          <button onClick={onClose} className="rounded-xl border border-[var(--border)] px-5 py-3 text-sm font-bold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]">
-            Cancel
+        <div className="flex gap-3 border-t border-[var(--border)] p-6 pt-4 shrink-0">
+          {tab !== "view_comments" && (
+            <button
+              onClick={handleSubmit}
+              disabled={loading || !content.trim()}
+              className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition disabled:opacity-50 ${tab === "resolve" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-[var(--accent)] hover:opacity-90"}`}
+            >
+              {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={14} />}
+              {loading ? "Submitting…" : tab === "comment" ? "Post Comment" : "Mark as Resolved"}
+            </button>
+          )}
+          <button onClick={onClose} className="rounded-xl flex-1 border border-[var(--border)] px-5 py-3 text-sm font-bold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]">
+            {tab === "view_comments" ? "Close" : "Cancel"}
           </button>
         </div>
       </div>
@@ -215,10 +264,19 @@ function BroadcastCard({ issue, onSelect }: { issue: IssueResponseDto; onSelect:
 
 // ─── Notification Feed Item ───────────────────────────────────────────────────
 
-function NotifItem({ notif, onRead }: { notif: NotificationResponseDto; onRead: (id: number) => void }) {
+function extractIssueId(msg: string): number | null {
+  const match = msg.match(/#(\d+)/);
+  return match ? parseInt(match[1], 10) : null;
+}
+
+function NotifItem({ notif, onRead, onOpenIssue }: { notif: NotificationResponseDto; onRead: (id: number) => void; onOpenIssue: (id: number) => void }) {
   return (
     <div
-      onClick={() => !notif.isRead && onRead(notif.id)}
+      onClick={() => {
+        const id = extractIssueId(notif.message);
+        if (id) onOpenIssue(id);
+        if (!notif.isRead) onRead(notif.id);
+      }}
       className={`cursor-pointer rounded-xl p-3 text-xs transition-all hover:bg-[var(--background)] ${notif.isRead ? "opacity-60" : "border border-[var(--accent)]/20 bg-[var(--accent)]/5"}`}
     >
       <p className={`font-bold ${notif.isRead ? "text-[var(--muted)]" : "text-[var(--foreground)]"}`}>
@@ -250,6 +308,7 @@ export default function AdminDashboardPage() {
   // Modals
   const [selectedIssue,     setSelectedIssue]     = useState<IssueResponseDto | null>(null);
   const [selectedBroadcast, setSelectedBroadcast] = useState<IssueResponseDto | null>(null);
+  const [selectedNotifIssueId, setSelectedNotifIssueId] = useState<number | null>(null);
 
   // Fetch broadcasts + system activity once on mount
   React.useEffect(() => {
@@ -486,7 +545,7 @@ export default function AdminDashboardPage() {
             ) : (
               <div className="max-h-48 space-y-2 overflow-y-auto">
                 {notifications.slice(0, 5).map((n) => (
-                  <NotifItem key={n.id} notif={n} onRead={markRead} />
+                  <NotifItem key={n.id} notif={n} onRead={markRead} onOpenIssue={setSelectedNotifIssueId} />
                 ))}
               </div>
             )}
@@ -539,6 +598,15 @@ export default function AdminDashboardPage() {
           onSuccess={() => {
             fetchBroadcastFeed().then(setBroadcasts).catch(() => {});
           }}
+        />
+      )}
+
+      {/* ── Notification Manage Modal ── */}
+      {selectedNotifIssueId && (
+        <ManageIssueModal 
+          issueId={selectedNotifIssueId} 
+          onClose={() => setSelectedNotifIssueId(null)} 
+          onSuccess={refetch}
         />
       )}
     </div>
