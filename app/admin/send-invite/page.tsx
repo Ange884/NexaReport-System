@@ -28,7 +28,7 @@ export default function SendInvitePage() {
   const [position,  setPosition]  = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [success,      setSuccess]      = useState<{ email: string; tempPassword: string; isResend?: boolean } | null>(null);
+  const [success,      setSuccess]      = useState<{ email: string; isResend?: boolean } | null>(null);
   const [error,        setError]        = useState<string | null>(null);
   const [isRoleOpen,   setIsRoleOpen]   = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -84,9 +84,8 @@ export default function SendInvitePage() {
 
       // Success (new invite or resend)
       setSuccess({
-        email:       result.email        ?? email,
-        tempPassword: result.temporaryPassword ?? "—",
-        isResend:    result.message?.toLowerCase().includes("resent"),
+        email:    result.email ?? email,
+        isResend: result.message?.toLowerCase().includes("resent"),
       });
       setFullNames(""); setEmail(""); setClassName(""); setPosition("");
       setRole("TEACHER");
@@ -122,18 +121,16 @@ export default function SendInvitePage() {
                       : `Invitation sent to ${success.email}`}
                   </p>
                 </div>
-                <p className={`text-xs font-bold ${success.isResend ? "text-amber-600" : "text-emerald-600"}`}>
-                  {success.isResend && (
-                    <span className="block mb-1 text-amber-700">
-                      This user was previously invited but hadn&apos;t activated their account. A new password has been generated.
-                    </span>
-                  )}
-                  Temporary password:{" "}
-                  <code className={`rounded px-1.5 py-0.5 font-mono font-black tracking-wider ${success.isResend ? "bg-amber-100" : "bg-emerald-100"}`}>
-                    {success.tempPassword}
-                  </code>
-                  {" "}— share this securely with the member.
-                </p>
+                {success.isResend && (
+                  <p className="text-xs font-bold text-amber-600">
+                    This user was previously invited but hadn&apos;t activated their account. A new password has been sent to their email.
+                  </p>
+                )}
+                {!success.isResend && (
+                  <p className="text-xs font-bold text-emerald-600">
+                    Login credentials have been sent to their email address.
+                  </p>
+                )}
               </div>
             )}
 
