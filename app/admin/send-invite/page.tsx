@@ -11,21 +11,21 @@ import type { UserRole } from "@/app/lib/types";
 // ─── Role options matching backend UserRole enum ──────────────────────────────
 
 const ROLE_OPTIONS: { value: UserRole; label: string; description: string }[] = [
-  { value: "ADMIN",              label: "Administrator",      description: "Full system control and user management." },
-  { value: "TEACHER",           label: "Teacher",            description: "Academic oversight and issue review." },
-  { value: "NURSE",             label: "Nurse",              description: "Health & welfare issue handler." },
+  { value: "ADMIN", label: "Administrator", description: "Full system control and user management." },
+  { value: "TEACHER", label: "Teacher", description: "Academic oversight and issue review." },
+  { value: "NURSE", label: "Nurse", description: "Health & welfare issue handler." },
   { value: "ADMINISTRATIVE_STAFF", label: "Administrative Staff", description: "Internal operations and task execution." },
-  { value: "COMMITTEE_MEMBER",  label: "Committee Member",   description: "Committee-level issue submission." },
-  { value: "CLASS_MONITOR",     label: "Class Monitor",      description: "Class-level issue reporting." },
- 
+  { value: "COMMITTEE_MEMBER", label: "Committee Member", description: "Committee-level issue submission." },
+  { value: "CLASS_MONITOR", label: "Class Monitor", description: "Class-level issue reporting." },
+
 ];
 
 export default function SendInvitePage() {
   const [fullNames, setFullNames] = useState("");
-  const [email,     setEmail]     = useState("");
-  const [role,      setRole]      = useState<UserRole>("TEACHER");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<UserRole>("TEACHER");
   const [className, setClassName] = useState("");
-  const [position,  setPosition]  = useState("");
+  const [position, setPosition] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success,      setSuccess]      = useState<{ email: string; tempPassword: string; isResend?: boolean } | null>(null);
@@ -44,7 +44,7 @@ export default function SendInvitePage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const needsClass    = role === "CLASS_MONITOR" || role === "STUDENT";
+  const needsClass = role === "CLASS_MONITOR" || role === "STUDENT";
   const needsPosition = role === "COMMITTEE_MEMBER";
   const selectedRoleInfo = ROLE_OPTIONS.find((r) => r.value === role);
 
@@ -87,6 +87,8 @@ export default function SendInvitePage() {
         email:       result.email        ?? email,
         tempPassword: result.temporaryPassword ?? "—",
         isResend:    result.message?.toLowerCase().includes("resent"),
+        ...(needsClass ? { className } : {}),
+        ...(needsPosition ? { committeePosition: position } : {}),
       });
       setFullNames(""); setEmail(""); setClassName(""); setPosition("");
       setRole("TEACHER");
@@ -189,15 +191,14 @@ export default function SendInvitePage() {
                 </label>
                 <div className="group relative" ref={dropdownRef}>
                   <ShieldCheck className={`pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 z-10 transition ${isRoleOpen ? "text-[var(--accent)]" : "text-[var(--muted)]"}`} size={16} />
-                  
+
                   <button
                     type="button"
                     onClick={() => setIsRoleOpen(!isRoleOpen)}
-                    className={`flex w-full items-center justify-between rounded-xl border bg-[var(--background)] py-3 pl-10 pr-4 text-sm font-bold outline-none transition-all ${
-                      isRoleOpen 
-                        ? "border-[var(--accent)] bg-white ring-4 ring-[var(--accent)]/5" 
+                    className={`flex w-full items-center justify-between rounded-xl border bg-[var(--background)] py-3 pl-10 pr-4 text-sm font-bold outline-none transition-all ${isRoleOpen
+                        ? "border-[var(--accent)] bg-white ring-4 ring-[var(--accent)]/5"
                         : "border-[var(--border)] hover:border-[var(--accent)]/40"
-                    }`}
+                      }`}
                   >
                     <span className={role ? "text-[var(--foreground)]" : "text-[var(--muted)]/40"}>
                       {ROLE_OPTIONS.find(r => r.value === role)?.label || "Select Role"}
@@ -215,11 +216,10 @@ export default function SendInvitePage() {
                             setRole(r.value);
                             setIsRoleOpen(false);
                           }}
-                          className={`group flex cursor-pointer flex-col rounded-lg px-3 py-2.5 transition-all ${
-                            role === r.value 
-                              ? "bg-[var(--accent)] text-white" 
+                          className={`group flex cursor-pointer flex-col rounded-lg px-3 py-2.5 transition-all ${role === r.value
+                              ? "bg-[var(--accent)] text-white"
                               : "text-[var(--foreground)] hover:bg-[var(--accent)]/5"
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center justify-between">
                             <span className="text-[13px] font-bold">{r.label}</span>
