@@ -103,7 +103,7 @@ export function useAuth(): AuthState {
     logoutUser().catch(() => {});
 
     // Hard redirect to root (landing page / login)
-    window.location.href = "/";
+    window.location.href = "/login";
   }, []);
 
   return {
