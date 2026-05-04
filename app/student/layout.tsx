@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/app/lib/hooks";
 import { NotificationProvider, useNotificationContext } from "@/app/lib/NotificationContext";
-import { isStudentRole } from "@/app/lib/types";
+import { isStudentRole, getDefaultRoute } from "@/app/lib/types";
 
 // ─── Nav items ────────────────────────────────────────────────────────────────
 
@@ -89,7 +89,7 @@ function StudentLayoutContent({ children }: { children: React.ReactNode }) {
   const { unreadCount } = useNotificationContext();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const isLoginPage = pathname === "/student/login";
+  const isLoginPage = pathname === "/login";
 
   // Client-side auth guard
   useEffect(() => {
@@ -97,14 +97,15 @@ function StudentLayoutContent({ children }: { children: React.ReactNode }) {
     if (isLoading) return;
 
     if (!user) {
-      router.replace(`/student/login?next=${encodeURIComponent(pathname)}`);
+      router.replace(`/login?next=${encodeURIComponent(pathname)}`);
       return;
     }
 
     if (!isStudentRole(user.role)) {
-      import("@/app/lib/types").then(({ getDefaultRoute }) => {
-        router.replace(getDefaultRoute(user.role));
-      });
+      const destination = getDefaultRoute(user.role);
+      if (pathname !== destination) {
+        router.replace(destination);
+      }
     }
   }, [isLoginPage, isLoading, user, pathname, router]);
 

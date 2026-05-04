@@ -31,7 +31,7 @@ import type {
   DashboardResponse,
   NotificationResponseDto,
 } from "./types";
-import { getDefaultRoute } from "./types";
+import { getDefaultRoute, isAdminRole, isStudentRole } from "./types";
 
 // ─── useAuth ──────────────────────────────────────────────────────────────────
 
@@ -95,19 +95,6 @@ export function useAuth(): AuthState {
   }, [refreshUser]);
 
   const logout = useCallback(async () => {
-    // Determine destination synchronously from localStorage before anything else
-    let destination = "/student/login";
-    try {
-      const raw = localStorage.getItem("nexa_user");
-      if (raw) {
-        const parsed = JSON.parse(raw) as { role?: string };
-        const adminRoles = ["ADMIN", "TEACHER", "NURSE", "ADMINISTRATIVE_STAFF"];
-        if (parsed.role && adminRoles.includes(parsed.role)) {
-          destination = "/admin/login";
-        }
-      }
-    } catch { /* fallback to student login */ }
-
     // Clear session immediately — don't wait for backend
     clearSession();
     setUser(null);
@@ -115,7 +102,7 @@ export function useAuth(): AuthState {
     // Fire backend logout in background (don't await — we're already navigating)
     logoutUser().catch(() => {});
 
-    // Hard redirect to landing page
+    // Hard redirect to root (landing page / login)
     window.location.href = "/";
   }, []);
 
@@ -154,24 +141,25 @@ export function useRequireAuth(
     if (!auth.isAuthenticated || !auth.user) {
       // Decide which login to redirect to based on URL
       if (typeof window !== "undefined") {
-        const path = window.location.pathname;
-        router.replace(
-          path.startsWith("/admin") ? "/admin/login" : "/student/login"
-        );
+        router.replace("/login");
       }
       return;
     }
 
     // Role-based guard
-    if (requiredGroup !== "any") {
-      import("./types").then(({ isAdminRole, isStudentRole }) => {
-        const role = auth.user!.role;
-        if (requiredGroup === "admin" && !isAdminRole(role)) {
-          router.replace(getDefaultRoute(role));
-        } else if (requiredGroup === "student" && !isStudentRole(role)) {
-          router.replace(getDefaultRoute(role));
+    if (requiredGroup !== "any" && auth.user) {
+      const role = auth.user.role;
+      const destination = getDefaultRoute(role);
+      
+      if (requiredGroup === "admin" && !isAdminRole(role)) {
+        if (typeof window !== "undefined" && window.location.pathname !== destination) {
+          router.replace(destination);
         }
-      });
+      } else if (requiredGroup === "student" && !isStudentRole(role)) {
+        if (typeof window !== "undefined" && window.location.pathname !== destination) {
+          router.replace(destination);
+        }
+      }
     }
   }, [auth.isLoading, auth.isAuthenticated, auth.user, requiredGroup, router]);
 

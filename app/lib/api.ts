@@ -145,13 +145,7 @@ async function authorizedRequest<T>(
 
 function redirectToLogin(): void {
   if (typeof window !== "undefined") {
-    // Detect which portal the user is in
-    const path = window.location.pathname;
-    if (path.startsWith("/admin")) {
-      window.location.href = "/admin/login";
-    } else {
-      window.location.href = "/student/login";
-    }
+    window.location.href = "/login";
   }
 }
 

@@ -5,7 +5,7 @@ import { Suspense, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/app/lib/hooks";
 import { NotificationProvider, useNotificationContext } from "@/app/lib/NotificationContext";
-import { isAdminRole } from "@/app/lib/types";
+import { isAdminRole, getDefaultRoute } from "@/app/lib/types";
 
 // ─── Nav items ────────────────────────────────────────────────────────────────
 
@@ -117,7 +117,7 @@ export default function AdminLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Allow login page to render without auth guard
-  const isLoginPage = pathname === "/admin/login";
+  const isLoginPage = pathname === "/login";
 
   // Client-side auth guard (middleware covers SSR; this covers CSR nav)
   useEffect(() => {
@@ -125,15 +125,16 @@ export default function AdminLayout({
     if (isLoading) return;
 
     if (!user) {
-      router.replace(`/admin/login?next=${encodeURIComponent(pathname)}`);
+      router.replace(`/login?next=${encodeURIComponent(pathname)}`);
       return;
     }
 
     // Role guard: only admin-tier roles can be in the admin section
     if (!isAdminRole(user.role)) {
-      import("@/app/lib/types").then(({ getDefaultRoute }) => {
-        router.replace(getDefaultRoute(user.role));
-      });
+      const destination = getDefaultRoute(user.role);
+      if (pathname !== destination) {
+        router.replace(destination);
+      }
     }
   }, [isLoginPage, isLoading, user, pathname, router]);
 
