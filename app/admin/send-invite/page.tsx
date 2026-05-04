@@ -28,7 +28,7 @@ export default function SendInvitePage() {
   const [position, setPosition] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [success,      setSuccess]      = useState<{ email: string; isResend?: boolean } | null>(null);
+  const [success,      setSuccess]      = useState<{ email: string; password: string; isResend?: boolean } | null>(null);
   const [error,        setError]        = useState<string | null>(null);
   const [isRoleOpen,   setIsRoleOpen]   = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -84,10 +84,9 @@ export default function SendInvitePage() {
 
       // Success (new invite or resend)
       setSuccess({
-        email:       result.email        ?? email,
-        isResend:    result.message?.toLowerCase().includes("resent"),
-        ...(needsClass ? { className } : {}),
-        ...(needsPosition ? { committeePosition: position } : {}),
+        email:    result.email ?? email,
+        password: result.temporaryPassword ?? "—",
+        isResend: result.message?.toLowerCase().includes("resent"),
       });
       setFullNames(""); setEmail(""); setClassName(""); setPosition("");
       setRole("TEACHER");
@@ -114,25 +113,33 @@ export default function SendInvitePage() {
 
             {/* Success banner */}
             {success && (
-              <div className={`mb-6 rounded-xl border p-4 animate-fade-in ${success.isResend ? "border-amber-200 bg-amber-50" : "border-emerald-200 bg-emerald-50"}`}>
-                <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle2 size={16} className={success.isResend ? "text-amber-600 shrink-0" : "text-emerald-600 shrink-0"} />
-                  <p className={`text-sm font-black ${success.isResend ? "text-amber-700" : "text-emerald-700"}`}>
+              <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 animate-fade-in">
+                <div className="flex items-center gap-2 mb-3">
+                  <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+                  <p className="text-sm font-black text-emerald-700">
                     {success.isResend
-                      ? `Invitation resent to ${success.email}`
-                      : `Invitation sent to ${success.email}`}
+                      ? `Account updated for ${success.email}`
+                      : `Account created for ${success.email}`}
                   </p>
                 </div>
-                {success.isResend && (
-                  <p className="text-xs font-bold text-amber-600">
-                    This user was previously invited but hadn&apos;t activated their account. A new password has been sent to their email.
+
+                {/* Password box */}
+                <div className="rounded-lg border border-emerald-200 bg-white p-3 mb-3">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-1">
+                    Temporary Password — Share this securely
                   </p>
-                )}
-                {!success.isResend && (
-                  <p className="text-xs font-bold text-emerald-600">
-                    Login credentials have been sent to their email address.
+                  <code className="text-sm font-black tracking-wider text-[var(--foreground)] select-all">
+                    {success.password}
+                  </code>
+                </div>
+
+                {/* Email note */}
+                <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2.5">
+                  <AlertCircle size={13} className="mt-0.5 shrink-0 text-amber-600" />
+                  <p className="text-[11px] font-bold text-amber-700">
+                    Email delivery is under development. Please share the password above directly with the user.
                   </p>
-                )}
+                </div>
               </div>
             )}
 
