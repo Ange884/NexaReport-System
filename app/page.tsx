@@ -388,7 +388,7 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Link href="/login" className="group flex items-center gap-2.5 rounded-full bg-white px-8 py-4 text-[0.95rem] font-black text-[#21130D] shadow-[0_8px_32px_rgba(255,255,255,0.15)] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_48px_rgba(255,255,255,0.2)]">
-                 Student Login
+                 Get Started
               <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
             </Link>
           </div>

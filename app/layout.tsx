@@ -13,6 +13,8 @@ export const metadata: Metadata = {
   description: "A fast, secure platform for students to report issues to staff. Your voice matters here.",
   icons: {
     icon: "/nexa.png",
+    shortcut: "/nexa.png",
+    apple: "/nexa.png",
   },
 };
 
